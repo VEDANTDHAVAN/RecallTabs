@@ -6,14 +6,7 @@ class TabRepository:
     def __init__(self, db: Session):
         self.db = db
 
-    def create(self, user_id: str, url: str, 
-        title: str, content: str | None,
-    ) -> Tab:
-        tab = Tab(
-            user_id=user_id, url=url, 
-            title=title, content=content,
-        )
-
+    def create(self, tab: Tab) -> Tab:
         self.db.add(tab)
         self.db.commit()
         self.db.refresh(tab)

@@ -1,13 +1,7 @@
-console.log(
-  "RecallTabs Background Started"
-);
+import { captureTab } from "./services/tabCaptureService";
 
 chrome.tabs.onUpdated.addListener(
-  (
-    tabId,
-    changeInfo,
-    tab
-  ) => {
+  async (tabId, changeInfo, tab) => {
     if (
       changeInfo.status !==
       "complete"
@@ -15,13 +9,19 @@ chrome.tabs.onUpdated.addListener(
       return;
     }
 
-    console.log(
-      "Tab Updated",
-      {
-        id: tabId,
-        title: tab.title,
-        url: tab.url
-      }
-    );
+    if(!tab.url) {
+      return;
+    }
+
+    try {
+      await captureTab({
+        browser_tab_id: tabId,
+        title: tab.title ?? "",
+        url: tab.url,
+        favicon: tab.favIconUrl,
+      });
+    } catch (error) {
+      console.error("Capture failed", error);
+    }
   }
 );

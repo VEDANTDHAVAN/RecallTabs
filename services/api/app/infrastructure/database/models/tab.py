@@ -22,5 +22,5 @@ class Tab(Base):
     title: Mapped[str] = mapped_column(Text,)
 
     content: Mapped[str | None] = mapped_column(
-        Text, nullable=True,
+        Text, nullable=True, default=None
     )

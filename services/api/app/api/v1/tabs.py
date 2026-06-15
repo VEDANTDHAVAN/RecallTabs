@@ -5,8 +5,10 @@ from app.domain.tab.schemas import CreateTabRequest, TabResponse
 from app.repositories.tab_repository import TabRepository
 from app.services.tab_service import TabService
 from app.services.user_service import UserProvisioningService
+from app.services.tab_capture_service import TabCaptureService
 from app.infrastructure.database.session import get_db
 from app.auth.dependencies import get_current_user
+from app.schemas.tab_capture import TabCaptureRequest
 
 router = APIRouter(prefix="/tabs", tags=["tabs"])
 
@@ -29,6 +31,22 @@ def debug_user(db: Session = Depends(get_db)):
     return {
         "id": user.id,
         "email": user.email,
+    }
+
+@router.post("/capture")
+def capture_tab(
+    payload: TabCaptureRequest,
+    db: Session = Depends(get_db),
+):
+    service = TabCaptureService(db)
+
+    tab = service.capture(
+        payload=payload, user_id="125657ed-f496-4735-8391-696b96be49c8",
+    )
+
+    return {
+        "id": str(tab.id),
+        "title": tab.title,
     }
 
 @router.post("", response_model=TabResponse,)
