@@ -1,6 +1,6 @@
 from uuid import uuid4
 
-from sqlalchemy import String, Text
+from sqlalchemy import String, Text, ForeignKey
 from sqlalchemy.orm import Mapped, mapped_column
 
 from app.infrastructure.database.base import Base
@@ -14,7 +14,7 @@ class Tab(Base):
     )
 
     user_id: Mapped[str] = mapped_column(
-        String, index=True,
+        ForeignKey("users.id"), index=True,
     )
 
     url: Mapped[str] = mapped_column(Text,)
