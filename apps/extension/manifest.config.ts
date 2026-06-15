@@ -1,0 +1,25 @@
+import { defineManifest } from "@crxjs/vite-plugin";
+
+export default defineManifest({
+    manifest_version: 3,
+    name: "RecallTabs",
+
+    version: "0.1.0",
+
+    permissions: [
+        "tabs", "storage"
+    ],
+
+    host_permissions: [
+        "http://localhost:8000/*"
+    ],
+
+    background: {
+        service_worker: "src/background/index.ts",
+        type: "module"
+    },
+
+    action: {
+        default_popup: "index.html"
+    }
+});

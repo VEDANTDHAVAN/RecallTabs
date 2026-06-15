@@ -1,159 +1,567 @@
-# Turborepo starter
+# RecallTabs
 
-This Turborepo starter is maintained by the Turborepo core team.
+AI-powered browser memory platform that transforms browser tabs into a searchable knowledge base.
 
-## Using this example
+## Vision
 
-Run the following command:
+Most people keep dozens (or hundreds) of browser tabs open because they fear losing information.
 
-```sh
-npx create-turbo@latest
+RecallTabs solves this problem by automatically:
+
+* Capturing browser tabs
+* Storing tab metadata
+* Organizing browsing history
+* Extracting page content
+* Generating AI summaries
+* Creating embeddings
+* Enabling semantic search
+* Allowing users to close tabs without losing context
+
+---
+
+# Architecture
+
+```text
+┌─────────────────┐
+│ Chrome Extension│
+└────────┬────────┘
+         │
+         ▼
+┌─────────────────┐
+│ FastAPI Backend │
+└────────┬────────┘
+         │
+         ▼
+┌─────────────────┐
+│ AI Pipeline     │
+│ GPT-4o-mini     │
+│ Embeddings      │
+└────────┬────────┘
+         │
+         ▼
+┌─────────────────┐
+│ PostgreSQL      │
+│ Supabase        │
+│ pgvector        │
+└────────┬────────┘
+         │
+         ▼
+┌─────────────────┐
+│ Next.js App     │
+└─────────────────┘
 ```
 
-## What's inside?
+---
 
-This Turborepo includes the following packages/apps:
+# Tech Stack
 
-### Apps and Packages
+## Frontend
 
-- `docs`: a [Next.js](https://nextjs.org/) app
-- `web`: another [Next.js](https://nextjs.org/) app
-- `@repo/ui`: a stub React component library shared by both `web` and `docs` applications
-- `@repo/eslint-config`: `eslint` configurations (includes `eslint-config-next` and `eslint-config-prettier`)
-- `@repo/typescript-config`: `tsconfig.json`s used throughout the monorepo
+* Next.js 15
+* TypeScript
+* TailwindCSS
+* shadcn/ui
 
-Each package/app is 100% [TypeScript](https://www.typescriptlang.org/).
+## Chrome Extension
 
-### Utilities
+* React
+* TypeScript
+* Manifest V3
+* CRXJS
+* Vite
 
-This Turborepo has some additional tools already setup for you:
+## Backend
 
-- [TypeScript](https://www.typescriptlang.org/) for static type checking
-- [ESLint](https://eslint.org/) for code linting
-- [Prettier](https://prettier.io) for code formatting
+* FastAPI
+* SQLAlchemy 2.0
+* Alembic
 
-### Build
+## Database
 
-To build all apps and packages, run the following command:
+* Supabase PostgreSQL
+* pgvector
 
-With [global `turbo`](https://turborepo.dev/docs/getting-started/installation#global-installation) installed (recommended):
+## AI
 
-```sh
-cd my-turborepo
-turbo build
+* OpenAI GPT-4o-mini
+* text-embedding-3-small
+
+## Authentication
+
+* Clerk
+
+## Deployment
+
+* Vercel
+* Railway
+
+---
+
+# Monorepo Structure
+
+```text
+RecallTabs/
+│
+├── apps/
+│   │
+│   ├── web/
+│   │
+│   └── extension/
+│
+├── services/
+│   │
+│   └── api/
+│
+├── packages/
+│
+├── turbo.json
+│
+└── pnpm-workspace.yaml
 ```
 
-Without global `turbo`, use your package manager:
+---
 
-```sh
-cd my-turborepo
-npx turbo build
-pnpm dlx turbo build
-pnpm exec turbo build
+# Current Progress
+
+## Phase 1 — Backend Foundation ✅
+
+### Implemented
+
+* FastAPI Application
+* Configuration Management
+* Environment Variables
+* Structured Logging
+* SQLAlchemy Setup
+* Alembic Setup
+* Supabase Connection
+* Health Check Endpoint
+
+### Health Endpoint
+
+```http
+GET /health
 ```
 
-You can build a specific package by using a [filter](https://turborepo.dev/docs/crafting-your-repository/running-tasks#using-filters):
+Response:
 
-With [global `turbo`](https://turborepo.dev/docs/getting-started/installation#global-installation) installed:
-
-```sh
-turbo build --filter=docs
+```json
+{
+  "status": "healthy",
+  "environment": "development"
+}
 ```
 
-Without global `turbo`:
+---
 
-```sh
-npx turbo build --filter=docs
-pnpm exec turbo build --filter=docs
-pnpm exec turbo build --filter=docs
+## Phase 2 — Authentication & Users ✅
+
+### Implemented
+
+#### User Management
+
+* Users Table
+* User Repository
+* User Provisioning Service
+
+#### Authentication Infrastructure
+
+* Clerk Configuration
+* JWT Verification Layer
+* Protected Routes
+* Current User Dependency
+
+#### Database Relationships
+
+```text
+Users
+  └── Tabs
 ```
 
-### Develop
+### Verified
 
-To develop all apps and packages, run the following command:
+* User Creation
+* User Retrieval
+* Database Persistence
 
-With [global `turbo`](https://turborepo.dev/docs/getting-started/installation#global-installation) installed (recommended):
+Example Response:
 
-```sh
-cd my-turborepo
-turbo dev
+```json
+{
+  "id": "125657ed-f496-4735-8391-696b96be49c8",
+  "email": "test@example.com"
+}
 ```
 
-Without global `turbo`, use your package manager:
+---
 
-```sh
-cd my-turborepo
-npx turbo dev
-pnpm exec turbo dev
-pnpm exec turbo dev
+## Phase 3A — Chrome Extension Foundation ✅
+
+### Implemented
+
+#### Extension Infrastructure
+
+* Manifest V3
+* CRXJS Setup
+* Vite Build System
+* React Popup
+* Background Service Worker
+
+#### Tab Monitoring
+
+* Tab Update Detection
+* Tab Metadata Capture
+* Service Worker Logging
+
+### Verified
+
+Extension successfully captures:
+
+```json
+{
+  "id": 1003198318,
+  "title": "Home - Chess.com",
+  "url": "https://www.chess.com/home"
+}
 ```
 
-You can develop a specific package by using a [filter](https://turborepo.dev/docs/crafting-your-repository/running-tasks#using-filters):
+### Example Console Output
 
-With [global `turbo`](https://turborepo.dev/docs/getting-started/installation#global-installation) installed:
+```text
+RecallTabs Background Started
 
-```sh
-turbo dev --filter=web
+Tab Updated {
+  id: 1003198318,
+  title: "Home - Chess.com",
+  url: "https://www.chess.com/home"
+}
 ```
 
-Without global `turbo`:
+---
 
-```sh
-npx turbo dev --filter=web
-pnpm exec turbo dev --filter=web
-pnpm exec turbo dev --filter=web
+# Backend Structure
+
+```text
+services/api/
+│
+├── app/
+│   │
+│   ├── core/
+│   │   ├── config.py
+│   │   ├── logger.py
+│   │   └── security.py
+│   │
+│   ├── features/
+│   │   │
+│   │   ├── users/
+│   │   │
+│   │   └── tabs/
+│   │
+│   ├── infrastructure/
+│   │   └── database/
+│   │
+│   └── main.py
+│
+├── migrations/
+│
+└── requirements.txt
 ```
 
-### Remote Caching
+---
 
-> [!TIP]
-> Vercel Remote Cache is free for all plans. Get started today at [vercel.com](https://vercel.com/signup?utm_source=remote-cache-sdk&utm_campaign=free_remote_cache).
+# Extension Structure
 
-Turborepo can use a technique known as [Remote Caching](https://turborepo.dev/docs/core-concepts/remote-caching) to share cache artifacts across machines, enabling you to share build caches with your team and CI/CD pipelines.
-
-By default, Turborepo will cache locally. To enable Remote Caching you will need an account with Vercel. If you don't have an account you can [create one](https://vercel.com/signup?utm_source=turborepo-examples), then enter the following commands:
-
-With [global `turbo`](https://turborepo.dev/docs/getting-started/installation#global-installation) installed (recommended):
-
-```sh
-cd my-turborepo
-turbo login
+```text
+apps/extension/
+│
+├── src/
+│   │
+│   ├── background/
+│   │   └── index.ts
+│   │
+│   ├── popup/
+│   │   └── App.tsx
+│   │
+│   ├── content/
+│   │
+│   ├── options/
+│   │
+│   └── shared/
+│
+├── manifest.config.ts
+├── vite.config.ts
+├── tsconfig.json
+│
+└── package.json
 ```
 
-Without global `turbo`, use your package manager:
+---
 
-```sh
-cd my-turborepo
-npx turbo login
-pnpm exec turbo login
-pnpm exec turbo login
+# Setup
+
+## Clone Repository
+
+```bash
+git clone <repository-url>
+
+cd RecallTabs
 ```
 
-This will authenticate the Turborepo CLI with your [Vercel account](https://vercel.com/docs/concepts/personal-accounts/overview).
+---
 
-Next, you can link your Turborepo to your Remote Cache by running the following command from the root of your Turborepo:
+## Install Dependencies
 
-With [global `turbo`](https://turborepo.dev/docs/getting-started/installation#global-installation) installed:
-
-```sh
-turbo link
+```bash
+pnpm install
 ```
 
-Without global `turbo`:
+---
 
-```sh
-npx turbo link
-pnpm exec turbo link
-pnpm exec turbo link
+## Backend
+
+```bash
+cd services/api
+
+python -m venv .venv
+
+source .venv/bin/activate
 ```
 
-## Useful Links
+Windows:
 
-Learn more about the power of Turborepo:
+```bash
+.venv\Scripts\activate
+```
 
-- [Tasks](https://turborepo.dev/docs/crafting-your-repository/running-tasks)
-- [Caching](https://turborepo.dev/docs/crafting-your-repository/caching)
-- [Remote Caching](https://turborepo.dev/docs/core-concepts/remote-caching)
-- [Filtering](https://turborepo.dev/docs/crafting-your-repository/running-tasks#using-filters)
-- [Configuration Options](https://turborepo.dev/docs/reference/configuration)
-- [CLI Usage](https://turborepo.dev/docs/reference/command-line-reference)
+Install:
+
+```bash
+pip install -r requirements.txt
+```
+
+---
+
+## Environment Variables
+
+Create:
+
+```text
+services/api/.env
+```
+
+```env
+APP_NAME=RecallTabs
+
+ENVIRONMENT=development
+
+DATABASE_URL=postgresql+psycopg://...
+
+OPENAI_API_KEY=...
+
+CLERK_JWKS_URL=...
+
+CLERK_ISSUER=...
+
+CLERK_AUDIENCE=...
+```
+
+---
+
+## Run Backend
+
+```bash
+uvicorn app.main:app --reload
+```
+
+---
+
+## Run Migrations
+
+```bash
+alembic upgrade head
+```
+
+---
+
+## Extension
+
+```bash
+cd apps/extension
+
+pnpm install
+```
+
+Development:
+
+```bash
+pnpm dev
+```
+
+Production Build:
+
+```bash
+pnpm build
+```
+
+---
+
+## Load Extension
+
+Open:
+
+```text
+chrome://extensions
+```
+
+Enable:
+
+```text
+Developer Mode
+```
+
+Click:
+
+```text
+Load unpacked
+```
+
+Select:
+
+```text
+apps/extension/dist
+```
+
+---
+
+# Testing
+
+## Backend
+
+Health Check:
+
+```bash
+curl http://localhost:8000/health
+```
+
+Expected:
+
+```json
+{
+  "status": "healthy",
+  "environment": "development"
+}
+```
+
+---
+
+## Database
+
+Verify Users:
+
+```sql
+SELECT * FROM users;
+```
+
+Verify Tabs:
+
+```sql
+SELECT * FROM tabs;
+```
+
+---
+
+## Extension
+
+Open several websites:
+
+```text
+https://github.com
+https://openai.com
+https://chess.com
+```
+
+Open Service Worker console.
+
+Expected:
+
+```text
+RecallTabs Background Started
+
+Tab Updated
+```
+
+events should appear.
+
+---
+
+# Roadmap
+
+## Phase 3B
+
+Tab Event Ingestion Pipeline
+
+* Extension → FastAPI
+* FastAPI → PostgreSQL
+* Persistent Tab Storage
+
+---
+
+## Phase 3C
+
+Content Extraction
+
+* Readability Parser
+* HTML Cleanup
+* Text Extraction
+
+---
+
+## Phase 4
+
+AI Processing Pipeline
+
+* GPT Summaries
+* Embeddings
+* Vector Storage
+
+---
+
+## Phase 5
+
+Knowledge Organization
+
+* Tab Clustering
+* Topic Detection
+* Session Detection
+
+---
+
+## Phase 6
+
+Search & Retrieval
+
+* Semantic Search
+* RAG
+* Context Retrieval
+
+---
+
+## Phase 7
+
+Dashboard
+
+* Search UI
+* Knowledge Browser
+* AI Chat over Tabs
+
+---
+
+# Current Status
+
+```text
+Phase 1  ✅ Complete
+Phase 2  ✅ Complete
+Phase 3A ✅ Complete
+Phase 3B ⏳ Next
+```
+
+**Current milestone:** Browser tab events are being captured successfully by the Chrome Extension. The next step is persisting those events in FastAPI and PostgreSQL.
