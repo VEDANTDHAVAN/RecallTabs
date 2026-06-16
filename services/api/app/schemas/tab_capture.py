@@ -5,3 +5,5 @@ class TabCaptureRequest(BaseModel):
     title: str
     url: HttpUrl
     favicon: str | None = None
+    content: str | None = None
+    description: str | None = None

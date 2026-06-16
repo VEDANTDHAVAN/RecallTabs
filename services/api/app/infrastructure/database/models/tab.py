@@ -1,6 +1,7 @@
 from uuid import uuid4
+from datetime import datetime
 
-from sqlalchemy import String, Text, ForeignKey
+from sqlalchemy import String, Text, ForeignKey, Integer, DateTime
 from sqlalchemy.orm import Mapped, mapped_column
 
 from app.infrastructure.database.base import Base
@@ -23,4 +24,20 @@ class Tab(Base):
 
     content: Mapped[str | None] = mapped_column(
         Text, nullable=True, default=None
+    )
+
+    description: Mapped[str | None] = mapped_column(
+        Text, nullable=True,
+    )
+
+    favicon: Mapped[str | None] = mapped_column(
+        Text, nullable=True,
+    )
+
+    word_count: Mapped[int] = mapped_column(
+        Integer, default=0,
+    )
+
+    captured_at: Mapped[datetime] = mapped_column(
+        DateTime, default=datetime.utcnow,
     )

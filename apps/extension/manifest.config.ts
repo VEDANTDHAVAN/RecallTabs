@@ -20,6 +20,13 @@ export default defineManifest({
         type: "module"
     },
 
+    "content_scripts": [
+        {
+            "matches": ["<all_urls>"],
+            "js": ["content.js"]
+        }
+    ],
+
     action: {
         default_popup: "index.html"
     }
