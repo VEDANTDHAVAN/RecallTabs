@@ -37,6 +37,7 @@ def debug_user(db: Session = Depends(get_db)):
 def capture_tab(
     payload: TabCaptureRequest,
     db: Session = Depends(get_db),
+    #current_user=Depends(get_current_user),
 ):
     service = TabCaptureService(db)
 
@@ -66,5 +67,6 @@ def create_tab(
 def list_tabs(db: Session = Depends(get_db)):
     repository = TabRepository(db)
     service = TabService(repository)
+    current_user = Depends(get_current_user)
 
-    return service.list_tabs(user_id="demo-user")
+    return service.list_tabs(user_id=current_user.id)

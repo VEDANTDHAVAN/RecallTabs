@@ -1,5 +1,5 @@
 from fastapi import FastAPI
-
+from fastapi.middleware.cors import CORSMiddleware
 from app.core.config import get_settings
 from app.core.logger import configure_logging
 from app.api.v1.tabs import router as tabs_router
@@ -13,7 +13,21 @@ app = FastAPI(
     version="1.0.0",
 )
 
-app.include_router(tabs_router)
+app.include_router(tabs_router, prefix="/api/v1",)
+
+origins = [
+    "http://localhost:3000",
+    "http://localhost:5173",
+    "chrome-extension://*",
+]
+
+app.add_middleware(
+    CORSMiddleware,
+    allow_origins=["*"],
+    allow_credentials=True,
+    allow_methods=["*"],
+    allow_headers=["*"],
+)
 
 @app.get("/health")
 async def health():

@@ -1,11 +1,10 @@
 import { captureTab } from "./services/tabCaptureService";
 
+console.log("RecallTabs Background Started");
+
 chrome.tabs.onUpdated.addListener(
   async (tabId, changeInfo, tab) => {
-    if (
-      changeInfo.status !==
-      "complete"
-    ) {
+    if (changeInfo.status !== "complete") {
       return;
     }
 
@@ -13,15 +12,25 @@ chrome.tabs.onUpdated.addListener(
       return;
     }
 
+    if (
+      tab.url.startsWith("chrome://") ||
+      tab.url.startsWith("chrome-extension://")
+    ) {
+      return;
+    }
+
     try {
-      await captureTab({
+      console.log("Capturing:", tab.title);
+
+      const result = await captureTab({
         browser_tab_id: tabId,
-        title: tab.title ?? "",
+        title: tab.title || "Untitled",
         url: tab.url,
-        favicon: tab.favIconUrl,
       });
+
+      console.log("Capture Success", result);
     } catch (error) {
-      console.error("Capture failed", error);
+      console.error("Capture Failed", error);
     }
   }
 );
