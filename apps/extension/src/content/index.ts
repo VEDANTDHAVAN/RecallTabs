@@ -1,3 +1,4 @@
+console.log("CONTENT WORKS");
 function extractPageContent() {
   const title = document.title;
   const url = window.location.href;
@@ -16,6 +17,13 @@ function extractPageContent() {
       ) as HTMLLinkElement
     )?.href || null;
 
+  console.log({
+    title, url, content,
+    description, favicon,
+    wordCount: content.length > 0
+        ? content.split(/\s+/).length : 0,
+  })
+  
   return {
     title, url, content,
     description, favicon,

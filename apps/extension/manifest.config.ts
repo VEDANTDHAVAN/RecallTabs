@@ -12,7 +12,8 @@ export default defineManifest({
 
     host_permissions: [
         "http://localhost:8000/*",
-        "http://127.0.0.1:8000/*"
+        "http://127.0.0.1:8000/*",
+        "<all_urls>"
     ],
 
     background: {
@@ -23,7 +24,7 @@ export default defineManifest({
     "content_scripts": [
         {
             "matches": ["<all_urls>"],
-            "js": ["content.js"]
+            "js": ["src/content/index.ts"],
         }
     ],
 

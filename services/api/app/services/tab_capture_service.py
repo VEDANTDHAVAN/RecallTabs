@@ -10,7 +10,8 @@ class TabCaptureService:
 
     def capture(self, payload: TabCaptureRequest, user_id: str) -> Tab:
         tab = Tab(
-            user_id=user_id, title=payload.title, url=str(payload.url), content=None
+            user_id=user_id, title=payload.title, url=str(payload.url), content=payload.content, 
+            description=payload.description, favicon=payload.favicon, word_count=payload.word_count,
         )
 
         return self.repository.create(tab)

@@ -7,3 +7,4 @@ class TabCaptureRequest(BaseModel):
     favicon: str | None = None
     content: str | None = None
     description: str | None = None
+    word_count: int = 0
