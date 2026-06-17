@@ -1,5 +1,5 @@
 from sqlalchemy.orm import Session
-
+from sqlalchemy import text
 from app.infrastructure.database.models.tab_chunk import TabChunk
 
 class TabChunkRepository:
@@ -12,3 +12,57 @@ class TabChunkRepository:
         self.db.refresh(tab_chunk)
 
         return tab_chunk
+    
+    def semantic_search(self, embedding: list[float], limit: int = 5,):
+        vector_str = "["+",".join(
+            map(str, embedding)
+        ) + "]"
+        
+        sql = text("""
+SELECT
+
+    t.id as tab_id,
+
+    t.title,
+
+    t.url,
+
+    MAX(
+        1 - (
+            tc.embedding <=> CAST(:embedding AS vector)
+        )
+    ) AS score
+
+FROM tab_chunk tc
+
+JOIN tabs t
+
+    ON tc.tab_id = t.id
+
+GROUP BY
+
+    t.id,
+    t.title,
+    t.url
+
+ORDER BY score DESC
+
+LIMIT :limit     
+""")
+
+        rows = self.db.execute(
+            sql, {
+                "embedding": vector_str, "limit": limit,
+            }
+        ).fetchall()
+
+        return [
+            {
+                "tab_id": row.tab_id,
+                "title": row.title,
+                "url": row.url,
+                "score": float(row.score),
+            }
+
+            for row in rows
+        ]

@@ -3,6 +3,7 @@ from fastapi.middleware.cors import CORSMiddleware
 from app.core.config import get_settings
 from app.core.logger import configure_logging
 from app.api.v1.tabs import router as tabs_router
+from app.api.v1.search import router as search_router
 
 configure_logging()
 
@@ -14,6 +15,7 @@ app = FastAPI(
 )
 
 app.include_router(tabs_router, prefix="/api/v1",)
+app.include_router(search_router, prefix="/api/v1",)
 
 origins = [
     "http://localhost:3000",

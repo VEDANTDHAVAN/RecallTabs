@@ -32,11 +32,12 @@ RecallTabs solves this problem by automatically:
 └────────┬────────┘
          │
          ▼
-┌─────────────────┐
-│ AI Pipeline     │
-│ GPT-4o-mini     │
-│ Embeddings      │
-└────────┬────────┘
+┌────────────────────┐
+│ AI Pipeline        │
+│ Text Chunking      │
+│ FastEmbed          │
+│ Semantic Search    │
+└────────┬───────────┘
          │
          ▼
 ┌─────────────────┐
@@ -83,8 +84,10 @@ RecallTabs solves this problem by automatically:
 
 ## AI
 
-* OpenAI GPT-4o-mini
-* text-embedding-3-small
+* FastEmbed
+* BAAI/bge-small-en-v1.5
+* Semantic Vector Search
+* Text Chunking
 
 ## Authentication
 
@@ -235,6 +238,66 @@ Tab Updated {
   url: "https://www.chess.com/home"
 }
 ```
+
+---
+## Phase 3B — Tab Capture Pipeline ✅
+
+### Implemented
+
+* Automatic page capture
+* Content extraction
+* Metadata extraction
+* FastAPI capture endpoint
+* Persistent PostgreSQL storage
+
+Captured fields:
+
+- URL
+- Title
+- Content
+- Description
+- Favicon
+- Word Count
+- Captured At
+
+### Endpoint
+
+POST /api/v1/tabs/capture
+
+---
+
+## Phase 3C — Semantic Memory ✅
+
+### Implemented
+
+* Text Chunking
+* Embedding Generation
+* pgvector Integration
+* Vector Similarity Search
+* Search API
+
+Embedding Model
+
+BAAI/bge-small-en-v1.5
+
+Embedding Dimensions
+
+384
+
+### Endpoint
+
+POST /api/v1/search
+
+# Example:
+
+[
+  {
+    "tab_id": "...",
+    "title": "ChatGPT",
+    "url": "...",
+    "score": 0.72
+  }
+]
 
 ---
 
@@ -495,27 +558,12 @@ events should appear.
 
 # Roadmap
 
-## Phase 3B
-
-Tab Event Ingestion Pipeline
-
-* Extension → FastAPI
-* FastAPI → PostgreSQL
-* Persistent Tab Storage
-
+## Phase 3B ✅ Tab Capture Pipeline
+## Phase 3C ✅ Semantic Memory
 ---
 
-## Phase 3C
-
-Content Extraction
-
-* Readability Parser
-* HTML Cleanup
-* Text Extraction
-
----
-
-## Phase 4
+## Phase 3D 🚧 AI Question
+Answering
 
 AI Processing Pipeline
 
@@ -525,9 +573,7 @@ AI Processing Pipeline
 
 ---
 
-## Phase 5
-
-Knowledge Organization
+## Phase 4 🚧 Knowledge Organization
 
 * Tab Clustering
 * Topic Detection
@@ -558,10 +604,15 @@ Dashboard
 # Current Status
 
 ```text
-Phase 1  ✅ Complete
-Phase 2  ✅ Complete
-Phase 3A ✅ Complete
-Phase 3B ⏳ Next
+Phase 1   ✅ Complete
+Phase 2   ✅ Complete
+Phase 3A  ✅ Chrome Extension Foundation
+Phase 3B  ✅ Tab Capture Pipeline
+Phase 3C  ✅ Semantic Memory with pgvector
+Phase 3D  🚧 AI Question Answering
 ```
 
-**Current milestone:** Browser tab events are being captured successfully by the Chrome Extension. The next step is persisting those events in FastAPI and PostgreSQL.
+**Current milestone:**
+RecallTabs can automatically capture webpages, extract content,
+generate embeddings, store vectors in pgvector, and perform
+semantic search over browsing history.
