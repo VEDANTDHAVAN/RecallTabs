@@ -300,6 +300,69 @@ POST /api/v1/search
 ]
 
 ---
+## Phase 3D — RAG Question Answering ✅
+
+### Implemented
+
+#### Semantic Retrieval
+
+- FastEmbed query embeddings
+- pgvector cosine similarity search
+- Top-K chunk retrieval
+- Context assembly
+
+#### RAG Pipeline
+
+User Question
+
+↓
+
+Embedding Generation
+
+↓
+
+Semantic Search
+
+↓
+
+Relevant Chunks
+
+↓
+
+GPT-4o-mini
+
+↓
+
+Answer + Sources
+
+#### AI Question Answering Endpoint
+
+```http
+POST /api/v1/ask
+```
+
+Request:
+
+```json
+{
+  "question": "What is Attention in LLMs?"
+}
+```
+
+Response:
+
+```json
+{
+  "answer": "Attention is a mechanism that allows Transformers to focus on relevant tokens while processing sequences.",
+
+  "sources": [
+    {
+      "title": "The Illustrated Transformer",
+      "url": "https://jalammar.github.io/illustrated-transformer/"
+    }
+  ]
+}
+```
 
 # Backend Structure
 
@@ -560,19 +623,7 @@ events should appear.
 
 ## Phase 3B ✅ Tab Capture Pipeline
 ## Phase 3C ✅ Semantic Memory
----
-
-## Phase 3D 🚧 AI Question
-Answering
-
-AI Processing Pipeline
-
-* GPT Summaries
-* Embeddings
-* Vector Storage
-
----
-
+## Phase 3D ✅ AI Question
 ## Phase 4 🚧 Knowledge Organization
 
 * Tab Clustering
@@ -604,12 +655,13 @@ Dashboard
 # Current Status
 
 ```text
-Phase 1   ✅ Complete
-Phase 2   ✅ Complete
-Phase 3A  ✅ Chrome Extension Foundation
-Phase 3B  ✅ Tab Capture Pipeline
-Phase 3C  ✅ Semantic Memory with pgvector
-Phase 3D  🚧 AI Question Answering
+Phase 1  ✅ Backend Foundation
+Phase 2  ✅ Authentication
+Phase 3A ✅ Extension Foundation
+Phase 3B ✅ Tab Capture Pipeline
+Phase 3C ✅ Semantic Search
+Phase 3D ✅ RAG Question Answering
+Phase 4  ⏳ AI Knowledge Organization
 ```
 
 **Current milestone:**

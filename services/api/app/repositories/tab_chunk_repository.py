@@ -66,3 +66,29 @@ LIMIT :limit
 
             for row in rows
         ]
+    
+    def search_chunks(
+        self, embedding: list[float], limit: int = 5,
+    ):
+        query = text("""
+SELECT
+    t.content, t.title, t.url,
+    1-(tc.embedding <=> CAST(:embedding AS vector))
+    AS score
+FROM tab_chunk tc
+JOIN tabs t
+    ON tc.tab_id = t.id
+ORDER BY
+    tc.embedding <=> CAST(:embedding AS vector)
+LIMIT :limit
+""")
+        result = self.db.execute(
+            query, {
+                "embedding": str(embedding),
+                "limit": limit,
+            }
+        )
+
+        return [
+            dict(row._mapping) for row in result
+        ]
