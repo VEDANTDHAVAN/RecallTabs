@@ -1,7 +1,7 @@
 from uuid import uuid4
 from datetime import datetime
 
-from sqlalchemy import String, Text, ForeignKey, Integer, DateTime
+from sqlalchemy import String, Text, ForeignKey, Integer, DateTime, JSON
 from sqlalchemy.orm import Mapped, mapped_column
 
 from app.infrastructure.database.base import Base
@@ -40,4 +40,20 @@ class Tab(Base):
 
     captured_at: Mapped[datetime] = mapped_column(
         DateTime, default=datetime.utcnow,
+    )
+
+    summary: Mapped[str | None] = mapped_column(
+        Text, nullable=True
+    )
+
+    keywords: Mapped[list | None] = mapped_column(
+        JSON, nullable=True
+    )
+
+    topic: Mapped[str | None] = mapped_column(
+        String, nullable=True
+    )
+
+    category: Mapped[str | None] = mapped_column(
+        String, nullable=True
     )

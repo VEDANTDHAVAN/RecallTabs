@@ -27,3 +27,15 @@ class LLMService:
         )
 
         return response.choices[0].message.content
+    
+    def complete(self, prompt: str):
+        response = client.chat.completions.create(
+            model="gpt-4o-mini", messages=[{
+                "role": "system", "content": "Return valid JSON only."
+            },{
+                "role": "user", "content": prompt
+            }],
+        temperature=0
+        )
+
+        return response.choices[0].message.content
