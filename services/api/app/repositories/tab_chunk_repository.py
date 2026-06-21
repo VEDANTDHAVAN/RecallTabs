@@ -92,3 +92,9 @@ LIMIT :limit
         return [
             dict(row._mapping) for row in result
         ]
+    
+    def get_chunks_by_tab_id(self, tab_id: str,) -> list[TabChunk]:
+        return (
+            self.db.query(TabChunk)
+            .filter(TabChunk.tab_id == tab_id).all()
+        )

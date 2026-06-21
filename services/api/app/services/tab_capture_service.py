@@ -6,13 +6,19 @@ from app.schemas.tab_capture import TabCaptureRequest
 from app.repositories.tab_chunk_repository import TabChunkRepository
 from app.services.tab_embedding_service import TabEmbeddingService
 from app.services.tab_ai_service import TabAIService
+from app.services.tab_similarity_service import TabSimilarityService
+from app.repositories.tab_relationship_repository import TabRelationshipRepository
 
 class TabCaptureService:
     def __init__(self, db: Session):
         self.repository = TabRepository(db)
         self.chunk_repository = (TabChunkRepository(db))
+        self.relationship_repository = (TabRelationshipRepository(db))
         self.embedding_service = (TabEmbeddingService(self.chunk_repository))
         self.ai_service = TabAIService()
+        self.similarity_service = (TabSimilarityService(
+            self.chunk_repository, self.relationship_repository,
+        ))
         self.db = db
 
     def capture(self, payload: TabCaptureRequest, user_id: str) -> Tab:
@@ -28,6 +34,8 @@ class TabCaptureService:
             self.embedding_service.process(
                 tab_id=saved_tab.id, content=saved_tab.content,
             )
+
+            self.similarity_service.build_relationships(saved_tab.id)
 
             analysis = self.ai_service.analyze(saved_tab.content or "")
 
