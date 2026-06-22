@@ -72,7 +72,7 @@ LIMIT :limit
     ):
         query = text("""
 SELECT
-    t.content, t.title, t.url,
+    tc.chunk_text, t.title, t.url,
     1-(tc.embedding <=> CAST(:embedding AS vector))
     AS score
 FROM tab_chunk tc

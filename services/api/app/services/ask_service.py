@@ -12,9 +12,15 @@ class AskService:
 
         chunks = self.repository.search_chunks(embedding)
 
+        for chunk in chunks:
+            print("\nTITLE:", chunk["title"])
+            print("\nCONTENT:")
+            print(chunk["chunk_text"][:500])
+            print("\n---------") 
+
         context = "\n\n".join(
-            chunk["content"][:1000] for chunk in chunks
-            if chunk["content"]
+            chunk["chunk_text"][:1000] for chunk in chunks
+            if chunk["chunk_text"]
         )
 
         answer = self.llm.answer(
@@ -34,6 +40,11 @@ class AskService:
                 "title": chunk["title"],
                 "url": chunk["url"]
             })
+
+        print("=" * 20)
+        print("\nCONTEXT\n")
+        print(context[:3000])
+        print("=" * 20)
 
         return {
             "answer": answer, "sources": sources

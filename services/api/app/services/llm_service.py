@@ -13,18 +13,33 @@ class LLMService:
             model="gpt-4o-mini", messages=[
                 {
                     "role": "system",
-                    "content": """You are RecallTabs, an AI memory assistant.
-                    Use ONLY the provided context.
-                    If the answer is unavailable: I couldn't find that information in your saved tabs.'
-                    Always cite the sources mentally before answering.
-                    Be concise."""
+                    "content": """
+You are RecallTabs, an AI memory assistant.
+
+You answer ONLY from the provided browsing context.
+
+If the answer is not present in the context, reply exactly:
+
+I couldn't find that information in your saved tabs.
+
+Be concise and factual.
+"""
                 },
                 {
                     "role": "user",
-                    "content": f"""Context: {context}, Question: {question}"""
+                    "content": f"""
+                Use the following saved browser context to answer.
+                CONTEXT: {context}
+                QUESTION: {question}
+
+Answer only using the context above.
+If the answer cannot be found in the context, say:
+"I couldn't find that information in your saved tabs."
+"""
                 }
             ], temperature=0.2, max_tokens=300,
         )
+        print(context)
 
         return response.choices[0].message.content
     
