@@ -40,6 +40,13 @@ class TabCaptureService:
             description=payload.description, favicon=payload.favicon, word_count=payload.word_count,
         )
 
+        ignored_domains = ["localhost", "swagger"]
+
+        url = str(payload.url).lower()
+
+        if any(x in url for x in ignored_domains):
+            return tab
+
         saved_tab = self.repository.create(tab)
 
         # Generate embeddings only if content exists

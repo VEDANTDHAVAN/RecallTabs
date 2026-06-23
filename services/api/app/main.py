@@ -10,6 +10,7 @@ from app.api.v1.topics import router as topic_router
 from app.api.v1.knowledge_graph import router as graph_router
 from app.api.v1.sessions import router as sessions_router
 from app.api.v1.clusters import router as cluster_router
+from app.api.v1.timeline import router as timeline_router
 
 configure_logging()
 
@@ -28,6 +29,7 @@ app.include_router(topic_router, prefix="/api/v1",)
 app.include_router(graph_router, prefix="/api/v1",)
 app.include_router(sessions_router, prefix="/api/v1", tags=["Sessions"])
 app.include_router(cluster_router, tags=["Memory Clusters"])
+app.include_router(timeline_router, tags=["Timeline"])
 
 origins = [
     "http://localhost:3000",

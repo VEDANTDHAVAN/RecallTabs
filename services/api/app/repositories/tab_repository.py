@@ -1,4 +1,5 @@
 from sqlalchemy.orm import Session
+from sqlalchemy import text
 
 from app.infrastructure.database.models.tab import Tab
 
@@ -31,3 +32,27 @@ class TabRepository:
         self.db.refresh(tab)
 
         return tab
+    
+    def get_timeline(self, limit: int = 100):
+        return (
+            self.db.query(Tab).order_by(
+                Tab.captured_at.desc()
+            ).limit(limit).all()
+        )
+    
+    def topic_statistics(self):
+        query = text("""
+SELECT topic,
+COUNT(*) as count
+FROM tabs
+WHERE topic IS NOT NULL
+AND topic <> ''
+GROUP BY topic
+ORDER BY count DESC
+""")
+        result = self.db.execute(query)
+
+        return [
+            dict(row._mapping)
+            for row in result
+        ]
