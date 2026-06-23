@@ -1,13 +1,18 @@
 from sqlalchemy.orm import Session
 
 from app.infrastructure.database.models.tab import Tab
+
 from app.repositories.tab_repository import TabRepository
-from app.schemas.tab_capture import TabCaptureRequest
 from app.repositories.tab_chunk_repository import TabChunkRepository
+from app.repositories.tab_relationship_repository import TabRelationshipRepository
+from app.repositories.session_repository import SessionRepository
+
 from app.services.tab_embedding_service import TabEmbeddingService
 from app.services.tab_ai_service import TabAIService
 from app.services.tab_similarity_service import TabSimilarityService
-from app.repositories.tab_relationship_repository import TabRelationshipRepository
+from app.services.session_detection_service import SessionDetectionService
+
+from app.schemas.tab_capture import TabCaptureRequest
 
 class TabCaptureService:
     def __init__(self, db: Session):
@@ -19,6 +24,9 @@ class TabCaptureService:
         self.similarity_service = (TabSimilarityService(
             self.chunk_repository, self.relationship_repository,
         ))
+        self.session_service = SessionDetectionService(
+            SessionRepository(db), self.repository,
+        )
         self.db = db
 
     def capture(self, payload: TabCaptureRequest, user_id: str) -> Tab:
@@ -46,5 +54,8 @@ class TabCaptureService:
             
             self.db.commit()
             self.db.refresh(saved_tab)
+
+            self.repository.update(saved_tab)
+            self.session_service.assign_session(saved_tab)
 
         return saved_tab

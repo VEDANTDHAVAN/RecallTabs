@@ -24,3 +24,10 @@ class TabRepository:
         return (
             self.db.query(Tab).filter(Tab.user_id == user_id).all()
         )
+    
+    def update(self, tab):
+        self.db.add(tab)
+        self.db.commit()
+        self.db.refresh(tab)
+
+        return tab

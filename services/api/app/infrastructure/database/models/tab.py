@@ -18,6 +18,10 @@ class Tab(Base):
         ForeignKey("users.id"), index=True,
     )
 
+    session_id: Mapped[str | None] = mapped_column(
+        ForeignKey("sessions.id"), nullable=True
+    )
+
     url: Mapped[str] = mapped_column(Text,)
 
     title: Mapped[str] = mapped_column(Text,)
