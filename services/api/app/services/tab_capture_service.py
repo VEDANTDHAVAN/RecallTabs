@@ -6,11 +6,13 @@ from app.repositories.tab_repository import TabRepository
 from app.repositories.tab_chunk_repository import TabChunkRepository
 from app.repositories.tab_relationship_repository import TabRelationshipRepository
 from app.repositories.session_repository import SessionRepository
+from app.repositories.memory_cluster_repository import MemoryClusterRepository
 
 from app.services.tab_embedding_service import TabEmbeddingService
 from app.services.tab_ai_service import TabAIService
 from app.services.tab_similarity_service import TabSimilarityService
 from app.services.session_detection_service import SessionDetectionService
+from app.services.memory_cluster_service import MemoryClusterService
 
 from app.schemas.tab_capture import TabCaptureRequest
 
@@ -26,6 +28,9 @@ class TabCaptureService:
         ))
         self.session_service = SessionDetectionService(
             SessionRepository(db), self.repository,
+        )
+        self.cluster_service = MemoryClusterService(
+            MemoryClusterRepository(db), SessionRepository(db)
         )
         self.db = db
 
@@ -51,11 +56,10 @@ class TabCaptureService:
             saved_tab.keywords = analysis["keywords"]
             saved_tab.topic = analysis["topic"]
             saved_tab.category = analysis["category"]
-            
-            self.db.commit()
-            self.db.refresh(saved_tab)
 
             self.repository.update(saved_tab)
-            self.session_service.assign_session(saved_tab)
+            session = self.session_service.assign_session(saved_tab)
+            if session:
+                self.cluster_service.assign_cluster(session)
 
         return saved_tab

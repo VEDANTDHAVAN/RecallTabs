@@ -24,3 +24,10 @@ class SessionRepository:
                 RecallSession.topic == topic
             ).first()
         )
+    
+    def update(self, session):
+        self.db.add(session)
+        self.db.commit()
+        self.db.refresh(session)
+
+        return session

@@ -1,12 +1,14 @@
 from uuid import uuid4
 
-from sqlalchemy import String, Text, ForeignKey
+from pgvector.sqlalchemy import Vector
+
+from sqlalchemy import String, Text
 from sqlalchemy.orm import Mapped, mapped_column
 
 from app.infrastructure.database.base import Base
 
-class Session(Base):
-    __tablename__ = "sessions"
+class MemoryCluster(Base):
+    __tablename__ = "memory_clusters"
 
     id: Mapped[str] = mapped_column(
         String, primary_key=True,
@@ -17,15 +19,10 @@ class Session(Base):
         String(255), nullable=False
     )
 
-    topic: Mapped[str] = mapped_column(
-        String(255), nullable=False
-    )
-
-    summary: Mapped[str] = mapped_column(
+    summary: Mapped[str | None] = mapped_column(
         Text, nullable=True
     )
 
-    cluster_id: Mapped[str | None] = mapped_column(
-        ForeignKey("memory_clusters.id"),
-        nullable=True,
+    embedding: Mapped[list[float]] = mapped_column(
+        Vector(384), nullable=False,
     )
