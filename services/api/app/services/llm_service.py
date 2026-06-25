@@ -1,6 +1,8 @@
 from openai import OpenAI
 from app.core.config import get_settings
 
+from openai.types.chat import ChatCompletionMessageParam
+
 settings = get_settings()
 
 client = OpenAI(api_key=settings.OPENAI_API_KEY)
@@ -51,6 +53,39 @@ If the answer cannot be found in the context, say:
                 "role": "user", "content": prompt
             }],
         temperature=0
+        )
+
+        return response.choices[0].message.content
+    
+    def chat(self, question: str, context: str, history: list):
+        messages: list[ChatCompletionMessageParam] = [
+            {
+                "role": "system",
+                "content": """You are RecallTabs.
+You answer questions using the user's saved browser memory.
+
+Use:
+1. Retrieved memory context
+2. Previous conversation history
+
+If information is unavailable, say:
+'I couldn't find that information in your saved tabs.'
+
+Be concise and accurate."""
+            }
+        ]
+        messages.extend(history)
+
+        messages.append({
+            "role": "user",
+            "content": f"""
+Context: {context} Question: {question}
+"""
+        })
+
+        response = client.chat.completions.create(
+            model="gpt-4.1-mini", messages=messages,
+            temperature=0.2, max_tokens=500,
         )
 
         return response.choices[0].message.content

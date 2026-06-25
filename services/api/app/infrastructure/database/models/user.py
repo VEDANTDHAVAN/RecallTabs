@@ -2,7 +2,7 @@ from datetime import datetime
 from uuid import uuid4
 
 from sqlalchemy import DateTime, String
-from sqlalchemy.orm import Mapped, mapped_column
+from sqlalchemy.orm import Mapped, mapped_column, relationship
 
 from app.infrastructure.database.base import Base
 
@@ -24,4 +24,9 @@ class User(Base):
 
     created_at: Mapped[str] = mapped_column(
         DateTime, default=datetime.utcnow,
+    )
+
+    conversations = relationship(
+        "Conversation", backref="user", 
+        cascade="all, delete-orphan"
     )
