@@ -26,3 +26,29 @@ class ConversationRepository:
                 Conversation.user_id == user_id
             ).all()
         )
+
+    def update_title(
+        self, conversation_id: str, title: str
+    ):
+        conversation = self.get(conversation_id)
+
+        if not conversation:
+            return None
+        
+        conversation.title = title
+
+        self.db.commit()
+        self.db.refresh(conversation)
+
+        return conversation
+    
+    def delete(self, conversation_id: str):
+        conversation = self.get(conversation_id)
+
+        if not conversation:
+            return False
+        
+        self.db.delete(conversation)
+        self.db.commit()
+
+        return True
