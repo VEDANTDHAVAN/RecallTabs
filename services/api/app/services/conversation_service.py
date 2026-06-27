@@ -16,9 +16,30 @@ class ConversationService:
         self.llm = LLMService()
 
     def chat(self, conversation_id: str, question: str):
+        self.message_repository.create(
+            Message(
+                conversation_id=conversation_id, 
+                role="user", content=question,
+            )
+        )
+
+        seen = set()
+        sources = []
+
         embedding = self.embedder.embed(question)
 
         chunks = self.chunk_repository.search_chunks(embedding)
+
+        for chunk in chunks:
+            if chunk["url"] in seen:
+                continue
+
+            seen.add(chunk["url"])
+
+            sources.append({
+                "title": chunk["title"],
+                "url": chunk["url"],
+            })
 
         context = "\n\n".join(
             chunk["chunk_text"][:1000]
@@ -39,18 +60,12 @@ class ConversationService:
 
         self.message_repository.create(
             Message(
-                conversation_id=conversation_id, 
-                role="user", content=question,
-            )
-        )
-
-        self.message_repository.create(
-            Message(
                 conversation_id=conversation_id,
-                role="assistant", content=answer,
+                role="assistant", content=answer, sources=sources
             )
         )
 
         return {
-            "answer": answer
+            "answer": answer,
+            "sources": sources,
         }

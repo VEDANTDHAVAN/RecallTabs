@@ -2,6 +2,8 @@ from uuid import uuid4
 
 from sqlalchemy import Text, String, ForeignKey
 
+from sqlalchemy.dialects.postgresql import JSON
+
 from sqlalchemy.orm import Mapped, mapped_column, relationship
 
 from app.infrastructure.database.base import Base
@@ -25,3 +27,5 @@ class Message(Base):
     conversation = relationship(
         "Conversation", back_populates="messages"
     )
+
+    sources: Mapped[list | None] = mapped_column(JSON, nullable=True)
