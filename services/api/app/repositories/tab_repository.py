@@ -56,3 +56,45 @@ ORDER BY count DESC
             dict(row._mapping)
             for row in result
         ]
+    
+    def keyword_search(
+        self, query: str, limit: int = 10,
+    ):
+        sql = text("""
+SELECT id, title, url, favicon,
+    summary, topic, ts_rank(
+        to_tsvector(
+            'english', 
+            coalesce(title, '') || ' ' ||
+            coalesce(summary, '') || ' ' ||
+            coalesce(content, '')
+        ),
+        plainto_tsquery('english', :query)
+    ) AS score
+FROM tabs
+WHERE is_searchable = TRUE
+AND
+    to_tsvector(
+     'english', coalesce(title, '') || ' ' ||
+     coalesce(summary, '') || ' ' ||
+     coalesce(content, '')
+    )
+    @@ plainto_tsquery('english', :query)
+ORDER BY score DESC
+LIMIT :limit
+""")
+        rows = self.db.execute(
+            sql, {
+                "query": query, "limit": limit,
+            },
+        ).fetchall()
+
+        return [{
+            "tab_id": row.id,
+            "title": row.title,
+            "url": row.url,
+            "summary": row.summary,
+            "topic": row.topic,
+            "favicon": row.favicon,
+            "score": float(row.score),
+        } for row in rows]

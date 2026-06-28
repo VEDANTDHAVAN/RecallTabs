@@ -1,7 +1,14 @@
 from openai import OpenAI
 from app.core.config import get_settings
 
-from openai.types.chat import ChatCompletionMessageParam
+from typing import Generator
+
+from openai.types.chat import (
+    ChatCompletionMessageParam, 
+    ChatCompletionUserMessageParam,
+    ChatCompletionAssistantMessageParam,
+    ChatCompletionSystemMessageParam,
+)
 
 settings = get_settings()
 
@@ -89,3 +96,56 @@ Context: {context} Question: {question}
         )
 
         return response.choices[0].message.content
+    
+    def stream_chat(
+        self, question: str, context: str,
+        history: list[dict],
+    ) -> Generator[str, None, None]:
+        messages: list[ChatCompletionMessageParam] = [
+            ChatCompletionSystemMessageParam(
+                role="system", content=(
+                    "You answer questions using ONLY the provided context."
+                    "If the answwr cannot be found , say you don't know."
+                ),
+            ),
+            ChatCompletionSystemMessageParam(
+                role="system", content=f"Context:\n{context}",
+            ),
+        ]
+
+        # Add previous conversations
+        for message in history:
+            if message["role"] == "user":
+                messages.append(
+                    ChatCompletionUserMessageParam(
+                        role="user", content=message["content"],
+                    )
+                )
+            else:
+                messages.append(
+                    ChatCompletionAssistantMessageParam(
+                        role="assistant", content=message["content"],
+                    )
+                )
+        
+        # Current question
+        messages.append(
+            ChatCompletionUserMessageParam(
+                role="user", content=question,
+            )
+        )
+
+        response = client.chat.completions.create(
+            model="gpt-5", messages=messages,
+            temperature=0.2, stream=True,
+        )
+
+        for chunk in response:
+
+            if not chunk.choices:
+                continue
+
+            delta = chunk.choices[0].delta
+
+            if delta.content:
+                yield delta.content

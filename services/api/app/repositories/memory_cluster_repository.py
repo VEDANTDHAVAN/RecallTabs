@@ -59,3 +59,24 @@ LIMIT :limit
             dict(row._mapping)
             for row in result
         ]
+    
+    def search_by_embedding(
+        self, embedding, limit: int = 3,
+    ):
+        sql = text("""
+SELECT id, title, summary, 
+        embedding <=> CAST(:embedding AS vector)
+            AS distance
+FROM memory_clusters
+WHERE embedding IS NOT NULL
+ORDER BY embedding <=> CAST(:embedding AS vector)
+LIMIT :limit
+""")
+        result = self.db.execute(
+            sql, {
+                "embedding": embedding,
+                "limit": limit,
+            },
+        )
+
+        return [dict(row._mapping) for row in result]

@@ -1,4 +1,5 @@
 from sqlalchemy.orm import Session
+from sqlalchemy import text
 
 from app.infrastructure.database.models.session import Session as RecallSession
 
@@ -31,3 +32,24 @@ class SessionRepository:
         self.db.refresh(session)
 
         return session
+    
+    def search_by_embedding(
+        self, embedding, limit: int = 3
+    ):
+        sql = text("""
+SELECT id, title, summary, embedding <=> CAST(:embedding AS vector)
+       AS distance
+FROM sessions
+WHERE embedding IS NOT NULL
+ORDER BY embedding <=> CAST(:embedding AS vector)
+LIMIT :limit 
+""")
+        
+        result = self.db.execute(
+            sql, {
+                "embedding": embedding,
+                "limit": limit,
+            },
+        )
+
+        return [dict(row._mapping) for row in result]

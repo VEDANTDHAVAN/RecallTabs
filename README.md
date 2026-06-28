@@ -1,670 +1,310 @@
 # RecallTabs
 
-AI-powered browser memory platform that transforms browser tabs into a searchable knowledge base.
+AI-powered browser memory platform that turns saved browser tabs into a searchable, conversational knowledge base.
 
 ## Vision
 
-Most people keep dozens (or hundreds) of browser tabs open because they fear losing information.
+People keep dozens of tabs open because closing them feels like losing context. RecallTabs captures useful pages automatically, stores their content and metadata, organizes them into memory structures, and lets users search or ask questions across their browsing history.
 
-RecallTabs solves this problem by automatically:
-
-* Capturing browser tabs
-* Storing tab metadata
-* Organizing browsing history
-* Extracting page content
-* Generating AI summaries
-* Creating embeddings
-* Enabling semantic search
-* Allowing users to close tabs without losing context
-
----
-
-# Architecture
+## Architecture
 
 ```text
-┌─────────────────┐
-│ Chrome Extension│
-└────────┬────────┘
-         │
-         ▼
-┌─────────────────┐
-│ FastAPI Backend │
-└────────┬────────┘
-         │
-         ▼
-┌────────────────────┐
-│ AI Pipeline        │
-│ Text Chunking      │
-│ FastEmbed          │
-│ Semantic Search    │
-└────────┬───────────┘
-         │
-         ▼
-┌─────────────────┐
-│ PostgreSQL      │
-│ Supabase        │
-│ pgvector        │
-└────────┬────────┘
-         │
-         ▼
-┌─────────────────┐
-│ Next.js App     │
-└─────────────────┘
+Chrome Extension
+    |
+    v
+FastAPI Backend
+    |
+    v
+AI Pipeline
+  - content extraction
+  - text chunking
+  - embeddings
+  - semantic search
+  - RAG/chat
+    |
+    v
+PostgreSQL / Supabase / pgvector
+    |
+    v
+Web Dashboard and Extension UI
 ```
 
----
+## Tech Stack
 
-# Tech Stack
+- Monorepo: pnpm, Turborepo
+- Backend: FastAPI, SQLAlchemy 2.0, Alembic
+- Database: Supabase PostgreSQL, pgvector
+- Extension: React, TypeScript, Manifest V3, CRXJS, Vite
+- Web app: Next.js, TypeScript
+- AI: OpenAI, FastEmbed, `BAAI/bge-small-en-v1.5`
+- Auth: Clerk
 
-## Frontend
-
-* Next.js 15
-* TypeScript
-* TailwindCSS
-* shadcn/ui
-
-## Chrome Extension
-
-* React
-* TypeScript
-* Manifest V3
-* CRXJS
-* Vite
-
-## Backend
-
-* FastAPI
-* SQLAlchemy 2.0
-* Alembic
-
-## Database
-
-* Supabase PostgreSQL
-* pgvector
-
-## AI
-
-* FastEmbed
-* BAAI/bge-small-en-v1.5
-* Semantic Vector Search
-* Text Chunking
-
-## Authentication
-
-* Clerk
-
-## Deployment
-
-* Vercel
-* Railway
-
----
-
-# Monorepo Structure
+## Project Structure
 
 ```text
 RecallTabs/
-│
-├── apps/
-│   │
-│   ├── web/
-│   │
-│   └── extension/
-│
-├── services/
-│   │
-│   └── api/
-│
-├── packages/
-│
-├── turbo.json
-│
-└── pnpm-workspace.yaml
+  apps/
+    extension/    Chrome extension
+    web/          Next.js dashboard shell
+  services/
+    api/          FastAPI backend
+  packages/
+    ui/           Shared UI package
+    eslint-config/
+    typescript-config/
 ```
 
----
+## Current Progress
 
-# Current Progress
+### Phase 1 - Backend Foundation: Complete
 
-## Phase 1 — Backend Foundation ✅
+Implemented:
 
-### Implemented
+- FastAPI application setup
+- environment configuration
+- structured logging
+- SQLAlchemy database setup
+- Alembic migrations
+- Supabase/PostgreSQL connection
+- `/health` endpoint
 
-* FastAPI Application
-* Configuration Management
-* Environment Variables
-* Structured Logging
-* SQLAlchemy Setup
-* Alembic Setup
-* Supabase Connection
-* Health Check Endpoint
+### Phase 2 - Authentication and Users: Complete, Needs Hardening
 
-### Health Endpoint
+Implemented:
 
-```http
-GET /health
-```
+- users table
+- user repository
+- user provisioning service
+- Clerk JWT verification layer
+- current-user dependency
 
-Response:
+Known follow-up:
 
-```json
-{
-  "status": "healthy",
-  "environment": "development"
-}
-```
+- several newer routes still use hardcoded development user IDs or do not consistently enforce auth.
 
----
+### Phase 3A - Chrome Extension Foundation: Complete
 
-## Phase 2 — Authentication & Users ✅
+Implemented:
 
-### Implemented
+- Manifest V3 extension
+- CRXJS and Vite build setup
+- React popup app
+- background service worker
+- content script
+- tab update monitoring
 
-#### User Management
+### Phase 3B - Tab Capture Pipeline: Complete
 
-* Users Table
-* User Repository
-* User Provisioning Service
+Implemented:
 
-#### Authentication Infrastructure
+- automatic page capture from the extension
+- content extraction from page body text
+- metadata extraction
+- `POST /api/v1/tabs/capture`
+- persistent tab storage
+- favicon, description, word count, and capture metadata
 
-* Clerk Configuration
-* JWT Verification Layer
-* Protected Routes
-* Current User Dependency
+### Phase 3C - Semantic Memory: Complete
 
-#### Database Relationships
+Implemented:
+
+- text chunking
+- embedding generation
+- pgvector-backed chunk storage
+- semantic vector search
+- `POST /api/v1/search`
+
+Embedding model:
 
 ```text
-Users
-  └── Tabs
-```
-
-### Verified
-
-* User Creation
-* User Retrieval
-* Database Persistence
-
-Example Response:
-
-```json
-{
-  "id": "125657ed-f496-4735-8391-696b96be49c8",
-  "email": "test@example.com"
-}
-```
-
----
-
-## Phase 3A — Chrome Extension Foundation ✅
-
-### Implemented
-
-#### Extension Infrastructure
-
-* Manifest V3
-* CRXJS Setup
-* Vite Build System
-* React Popup
-* Background Service Worker
-
-#### Tab Monitoring
-
-* Tab Update Detection
-* Tab Metadata Capture
-* Service Worker Logging
-
-### Verified
-
-Extension successfully captures:
-
-```json
-{
-  "id": 1003198318,
-  "title": "Home - Chess.com",
-  "url": "https://www.chess.com/home"
-}
-```
-
-### Example Console Output
-
-```text
-RecallTabs Background Started
-
-Tab Updated {
-  id: 1003198318,
-  title: "Home - Chess.com",
-  url: "https://www.chess.com/home"
-}
-```
-
----
-## Phase 3B — Tab Capture Pipeline ✅
-
-### Implemented
-
-* Automatic page capture
-* Content extraction
-* Metadata extraction
-* FastAPI capture endpoint
-* Persistent PostgreSQL storage
-
-Captured fields:
-
-- URL
-- Title
-- Content
-- Description
-- Favicon
-- Word Count
-- Captured At
-
-### Endpoint
-
-POST /api/v1/tabs/capture
-
----
-
-## Phase 3C — Semantic Memory ✅
-
-### Implemented
-
-* Text Chunking
-* Embedding Generation
-* pgvector Integration
-* Vector Similarity Search
-* Search API
-
-Embedding Model
-
 BAAI/bge-small-en-v1.5
-
-Embedding Dimensions
-
-384
-
-### Endpoint
-
-POST /api/v1/search
-
-# Example:
-
-[
-  {
-    "tab_id": "...",
-    "title": "ChatGPT",
-    "url": "...",
-    "score": 0.72
-  }
-]
-
----
-## Phase 3D — RAG Question Answering ✅
-
-### Implemented
-
-#### Semantic Retrieval
-
-- FastEmbed query embeddings
-- pgvector cosine similarity search
-- Top-K chunk retrieval
-- Context assembly
-
-#### RAG Pipeline
-
-User Question
-
-↓
-
-Embedding Generation
-
-↓
-
-Semantic Search
-
-↓
-
-Relevant Chunks
-
-↓
-
-GPT-4o-mini
-
-↓
-
-Answer + Sources
-
-#### AI Question Answering Endpoint
-
-```http
-POST /api/v1/ask
+384 dimensions
 ```
 
-Request:
+### Phase 3D - RAG Question Answering: Complete
 
-```json
-{
-  "question": "What is Attention in LLMs?"
-}
-```
+Implemented:
 
-Response:
+- query embeddings
+- top-k chunk retrieval
+- context assembly
+- OpenAI-backed answer generation
+- `POST /api/v1/ask`
+- answer responses with sources
 
-```json
-{
-  "answer": "Attention is a mechanism that allows Transformers to focus on relevant tokens while processing sequences.",
+### Phase 4 - Knowledge Organization: Complete
 
-  "sources": [
-    {
-      "title": "The Illustrated Transformer",
-      "url": "https://jalammar.github.io/illustrated-transformer/"
-    }
-  ]
-}
-```
+Implemented:
 
-# Backend Structure
+- AI-generated tab summaries
+- tab topics, categories, and keywords
+- related-tab relationships
+- topic endpoints
+- knowledge graph endpoint
+
+Key endpoints:
+
+- `GET /api/v1/tabs/{tab_id}/related`
+- `GET /api/v1/tabs/{tab_id}/graph`
+- topic APIs under `services/api/app/api/v1/topics.py`
+
+### Phase 5 - Sessions, Clusters, and Timeline: Complete
+
+Implemented:
+
+- browsing session detection
+- session repository and API
+- memory cluster model and service
+- memory cluster query API
+- timeline endpoint
+- topic statistics endpoint
+
+Key endpoints:
+
+- `GET /sessions`
+- `GET /clusters`
+- `GET /timeline`
+- `GET /timeline/topics`
+
+### Phase 6A - Conversation Data Model: Complete
+
+Implemented:
+
+- conversation model
+- message model
+- repositories for conversations and messages
+- migrations for conversation/message tables
+
+### Phase 6B - Conversation Management API: Complete
+
+Implemented:
+
+- create conversation
+- list conversations
+- get conversation
+- rename conversation
+- delete conversation
+- fetch conversation messages
+
+Key endpoints:
+
+- `POST /api/v1/conversations`
+- `GET /api/v1/conversations`
+- `GET /api/v1/conversations/{conversation_id}`
+- `PATCH /api/v1/conversations/{conversation_id}`
+- `DELETE /api/v1/conversations/{conversation_id}`
+- `GET /api/v1/conversations/{conversation_id}/messages`
+
+### Phase 6C - Chat Over Saved Tabs: Complete
+
+Implemented:
+
+- chat service
+- message persistence for user and assistant turns
+- retrieval over tab chunks
+- answer generation with saved browsing context
+- extension-side chat components
+
+Key endpoint:
+
+- `POST /api/v1/chat/{conversation_id}`
+
+### Phase 6D - Search and Context Expansion: In Progress
+
+Implemented or staged:
+
+- hybrid search direction with semantic and keyword search repositories
+- `is_searchable` filtering for ignored/internal pages
+- extension search panel
+- context selection across chunks, sessions, and memory clusters
+- streaming chat endpoint scaffold
+
+Known follow-ups before Phase 7 can be considered stable:
+
+- align `/search` backend response with the extension `SearchPanel`
+- repair streaming chat constructor and argument order
+- consistently serialize pgvector query embeddings in session and cluster search
+- restore or combine chat/search UI in the extension popup
+- replace hardcoded user IDs with authenticated user context
+- add focused API/service tests
+
+## Current Status
 
 ```text
-services/api/
-│
-├── app/
-│   │
-│   ├── core/
-│   │   ├── config.py
-│   │   ├── logger.py
-│   │   └── security.py
-│   │
-│   ├── features/
-│   │   │
-│   │   ├── users/
-│   │   │
-│   │   └── tabs/
-│   │
-│   ├── infrastructure/
-│   │   └── database/
-│   │
-│   └── main.py
-│
-├── migrations/
-│
-└── requirements.txt
+Phase 1   Complete  Backend foundation
+Phase 2   Complete  Authentication and users, hardening needed
+Phase 3A  Complete  Extension foundation
+Phase 3B  Complete  Tab capture pipeline
+Phase 3C  Complete  Semantic memory
+Phase 3D  Complete  RAG question answering
+Phase 4   Complete  Knowledge organization
+Phase 5   Complete  Sessions, clusters, and timeline
+Phase 6A  Complete  Conversation data model
+Phase 6B  Complete  Conversation management
+Phase 6C  Complete  Chat over saved tabs
+Phase 6D  In progress  Search and context expansion
+Phase 7   Next  Search/chat stabilization and extension memory UX
 ```
 
----
+## Recommended Next Phase
 
-# Extension Structure
+Phase 7 should focus on stabilizing the product loop:
 
 ```text
-apps/extension/
-│
-├── src/
-│   │
-│   ├── background/
-│   │   └── index.ts
-│   │
-│   ├── popup/
-│   │   └── App.tsx
-│   │
-│   ├── content/
-│   │
-│   ├── options/
-│   │
-│   └── shared/
-│
-├── manifest.config.ts
-├── vite.config.ts
-├── tsconfig.json
-│
-└── package.json
+capture tabs -> search saved memory -> ask/chat with sources -> revisit useful pages
 ```
 
----
+Recommended split:
 
-# Setup
+- Phase 7A: Search and chat contract stabilization
+- Phase 7B: Extension memory UI
+- Phase 7C: minimal tests for capture, search, and chat
 
-## Clone Repository
+## Development
 
-```bash
-git clone <repository-url>
-
-cd RecallTabs
-```
-
----
-
-## Install Dependencies
+Install dependencies:
 
 ```bash
 pnpm install
 ```
 
----
-
-## Backend
-
-```bash
-cd services/api
-
-python -m venv .venv
-
-source .venv/bin/activate
-```
-
-Windows:
-
-```bash
-.venv\Scripts\activate
-```
-
-Install:
-
-```bash
-pip install -r requirements.txt
-```
-
----
-
-## Environment Variables
-
-Create:
-
-```text
-services/api/.env
-```
-
-```env
-APP_NAME=RecallTabs
-
-ENVIRONMENT=development
-
-DATABASE_URL=postgresql+psycopg://...
-
-OPENAI_API_KEY=...
-
-CLERK_JWKS_URL=...
-
-CLERK_ISSUER=...
-
-CLERK_AUDIENCE=...
-```
-
----
-
-## Run Backend
-
-```bash
-uvicorn app.main:app --reload
-```
-
----
-
-## Run Migrations
-
-```bash
-alembic upgrade head
-```
-
----
-
-## Extension
-
-```bash
-cd apps/extension
-
-pnpm install
-```
-
-Development:
+Run all workspace development tasks:
 
 ```bash
 pnpm dev
 ```
 
-Production Build:
+Run the API:
 
 ```bash
-pnpm build
+cd services/api
+uvicorn app.main:app --reload
 ```
 
----
+Run migrations:
 
-## Load Extension
-
-Open:
-
-```text
-chrome://extensions
+```bash
+cd services/api
+alembic upgrade head
 ```
 
-Enable:
+Build the extension:
 
-```text
-Developer Mode
+```bash
+pnpm --filter @recalltabs/extension build
 ```
 
-Click:
-
-```text
-Load unpacked
-```
-
-Select:
+Load the extension from:
 
 ```text
 apps/extension/dist
 ```
 
----
+## Verification
 
-# Testing
+Recently verified:
 
-## Backend
+- `python -m compileall app`
+- `pnpm --filter @recalltabs/extension build`
 
-Health Check:
-
-```bash
-curl http://localhost:8000/health
-```
-
-Expected:
-
-```json
-{
-  "status": "healthy",
-  "environment": "development"
-}
-```
-
----
-
-## Database
-
-Verify Users:
-
-```sql
-SELECT * FROM users;
-```
-
-Verify Tabs:
-
-```sql
-SELECT * FROM tabs;
-```
-
----
-
-## Extension
-
-Open several websites:
-
-```text
-https://github.com
-https://openai.com
-https://chess.com
-```
-
-Open Service Worker console.
-
-Expected:
-
-```text
-RecallTabs Background Started
-
-Tab Updated
-```
-
-events should appear.
-
----
-
-# Roadmap
-
-## Phase 3B ✅ Tab Capture Pipeline
-## Phase 3C ✅ Semantic Memory
-## Phase 3D ✅ AI Question
-## Phase 4 🚧 Knowledge Organization
-
-* Tab Clustering
-* Topic Detection
-* Session Detection
-
----
-
-## Phase 6
-
-Search & Retrieval
-
-* Semantic Search
-* RAG
-* Context Retrieval
-
----
-
-## Phase 7
-
-Dashboard
-
-* Search UI
-* Knowledge Browser
-* AI Chat over Tabs
-
----
-
-# Current Status
-
-```text
-Phase 1  ✅ Backend Foundation
-Phase 2  ✅ Authentication
-Phase 3A ✅ Extension Foundation
-Phase 3B ✅ Tab Capture Pipeline
-Phase 3C ✅ Semantic Search
-Phase 3D ✅ RAG Question Answering
-Phase 4  ⏳ AI Knowledge Organization
-```
-
-**Current milestone:**
-RecallTabs can automatically capture webpages, extract content,
-generate embeddings, store vectors in pgvector, and perform
-semantic search over browsing history.
+The backend still needs integration tests with database, OpenAI, and authenticated route coverage.

@@ -6,6 +6,7 @@ import ChatWindow from "../components/ChatWindow";
 import { 
   createConversation, listConversations,
 } from "../shared/api/conversation";
+import SearchPanel from "../components/SearchPanel";
 
 export default function App() {
   const [conversations, setConversations] = useState<any[]>([]);
@@ -34,13 +35,6 @@ export default function App() {
   }, []);
 
   return (
-    <div style={{display: "flex", width: 800, height: 600,}}>
-      <ConversationSidebar 
-       conversations={conversations} currentId={currentConversation}
-       onSelect={setCurrentConversation} onNew={handleNewConversation}
-      />
-
-      <ChatWindow conversationId={currentConversation} />
-    </div>
+   <SearchPanel />   
   );
 }

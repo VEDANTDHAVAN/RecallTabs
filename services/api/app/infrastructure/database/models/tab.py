@@ -1,7 +1,7 @@
 from uuid import uuid4
 from datetime import datetime
 
-from sqlalchemy import String, Text, ForeignKey, Integer, DateTime, JSON
+from sqlalchemy import String, Text, ForeignKey, Integer, DateTime, JSON, Boolean
 from sqlalchemy.orm import Mapped, mapped_column
 
 from app.infrastructure.database.base import Base
@@ -60,4 +60,8 @@ class Tab(Base):
 
     category: Mapped[str | None] = mapped_column(
         String, nullable=True
+    )
+
+    is_searchable: Mapped[bool] = mapped_column(
+        Boolean, default=True, nullable=False,
     )
