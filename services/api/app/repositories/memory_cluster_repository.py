@@ -38,6 +38,8 @@ class MemoryClusterRepository:
         self, embedding: list[float],
         limit: int = 1,
     ):
+        vector_str = "[" + ",".join(map(str, embedding)) + "]"
+
         query = text("""
 SELECT 
     id, title, summary,
@@ -50,7 +52,7 @@ LIMIT :limit
 """)
         result = self.db.execute(
             query, {
-                "embedding": str(embedding),
+                "embedding": vector_str,
                 "limit": limit,
             }
         )
@@ -63,6 +65,8 @@ LIMIT :limit
     def search_by_embedding(
         self, embedding, limit: int = 3,
     ):
+        vector_str = "[" + ",".join(map(str, embedding)) + "]"
+
         sql = text("""
 SELECT id, title, summary, 
         embedding <=> CAST(:embedding AS vector)
@@ -74,7 +78,7 @@ LIMIT :limit
 """)
         result = self.db.execute(
             sql, {
-                "embedding": embedding,
+                "embedding": vector_str,
                 "limit": limit,
             },
         )

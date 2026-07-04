@@ -58,7 +58,7 @@ LIMIT :limit
                 continue
 
             results.append({
-                "tab_id": row.tab_id,
+                "tab_id": str(row.tab_id),
                 "title": row.title,
                 "url": row.url,
                 "summary": row.summary,

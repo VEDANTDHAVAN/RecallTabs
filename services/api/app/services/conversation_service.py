@@ -62,15 +62,7 @@ class ConversationService:
         self, question: str,
         conversation_id: str,
     ):
-        embedding = self.embedder.embed(question)
-
-        chunks = self.chunk_repository.search_chunks(embedding)
-
-        context = "\n\n".join(
-            chunk["chunk_text"][:1000]
-            for chunk in chunks
-            if chunk["chunk_text"]
-        )
+        context = self.context_selector.build_context(question)
 
         messages = self.message_repository.get_messages(conversation_id)
 

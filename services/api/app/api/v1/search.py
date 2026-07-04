@@ -13,15 +13,11 @@ from app.services.search_service import SearchService
 
 from app.infrastructure.database.session import get_db
 
-class HybridSearchResponse(BaseModel):
-    semantic: list[SearchResult]
-    keyword: list[SearchResult]
-
 router = APIRouter(
     prefix="/search", tags=["search"],
 )
 
-@router.post("", response_model=HybridSearchResponse)
+@router.post("", response_model=list[SearchResult])
 def search(
     payload: SearchRequest,
     db: Session = Depends(get_db),

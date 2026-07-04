@@ -90,7 +90,7 @@ LIMIT :limit
         ).fetchall()
 
         return [{
-            "tab_id": row.id,
+            "tab_id": str(row.id),
             "title": row.title,
             "url": row.url,
             "summary": row.summary,
@@ -98,3 +98,8 @@ LIMIT :limit
             "favicon": row.favicon,
             "score": float(row.score),
         } for row in rows]
+    
+    def domain_search(self, domain: str):
+        return (self.db.query(Tab).filter(
+            Tab.url.ilike(f"%{domain}%")
+        ).limit(20).all())
