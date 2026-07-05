@@ -17,20 +17,22 @@ type SearchResponse = {
 
 export default function SearchPanel() {
     const [query, setQuery] = useState("");
-    const [results, setResults] = useState<SearchResponse>({
-        semantic: [],
-        keyword: [],
-    });
+    const [results, setResults] = useState<SearchResult[]>([]);
 
     async function handleSearch() {
         if (!query.trim()) return;
 
         const data = await search(query);
 
-        setResults({
-            semantic: data.semantic ?? [],
-            keyword: data.keyword ?? [],
-        });
+        if (Array.isArray(data)) {
+            setResults(data);
+            return;
+        }
+
+        setResults([
+            ...(data.semantic ?? []),
+            ...(data.keyword ?? []),
+        ]);
     }
 
     function formatScore(score: number) {
@@ -82,8 +84,7 @@ export default function SearchPanel() {
 
          <button onClick={handleSearch} style={{ marginTop: 10 }}>Search</button>
 
-         {renderResults("Semantic matches", results.semantic)}
-         {renderResults("Keyword matches", results.keyword)}
+         {renderResults("Results", results)}
         </div>
     );
 }

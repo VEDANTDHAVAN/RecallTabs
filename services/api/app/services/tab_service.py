@@ -1,4 +1,5 @@
 from app.domain.tab.schemas import CreateTabRequest
+from app.infrastructure.database.models.tab import Tab
 from app.repositories.tab_repository import TabRepository
 
 class TabService:
@@ -9,8 +10,12 @@ class TabService:
         payload: CreateTabRequest,
     ):
         return self.repository.create(
-            user_id=user_id, url=str(payload.url),
-            title=payload.title, content=payload.content,
+            Tab(
+                user_id=user_id,
+                url=str(payload.url),
+                title=payload.title,
+                content=payload.content,
+            )
         )
     
     def list_tabs(

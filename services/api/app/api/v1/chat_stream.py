@@ -11,6 +11,7 @@ from app.repositories.tab_chunk_repository import TabChunkRepository
 from app.repositories.message_repository import MessageRepository
 from app.repositories.session_repository import SessionRepository
 from app.repositories.memory_cluster_repository import MemoryClusterRepository
+from app.repositories.tab_repository import TabRepository
 
 from app.services.conversation_service import ConversationService
 
@@ -26,6 +27,7 @@ def stream_chat(
     service = ConversationService(
         TabChunkRepository(db), MessageRepository(db),
         SessionRepository(db), MemoryClusterRepository(db),
+        TabRepository(db),
     )
 
     return StreamingResponse(

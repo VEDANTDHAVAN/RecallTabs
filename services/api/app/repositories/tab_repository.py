@@ -99,7 +99,24 @@ LIMIT :limit
             "score": float(row.score),
         } for row in rows]
     
-    def domain_search(self, domain: str):
-        return (self.db.query(Tab).filter(
-            Tab.url.ilike(f"%{domain}%")
-        ).limit(20).all())
+    def domain_search(self, domain: str, limit: int = 20):
+        rows = (
+            self.db.query(Tab)
+            .filter(Tab.is_searchable == True)
+            .filter(Tab.url.ilike(f"%{domain}%"))
+            .limit(limit)
+            .all()
+        )
+
+        return [
+            {
+                "tab_id": str(tab.id),
+                "title": tab.title,
+                "url": tab.url,
+                "summary": tab.summary,
+                "topic": tab.topic,
+                "favicon": tab.favicon,
+                "score": 100.0,
+            }
+            for tab in rows
+        ]

@@ -1,7 +1,7 @@
 from uuid import uuid4
 from datetime import datetime
 
-from sqlalchemy import String, Text, ForeignKey, Integer, DateTime, JSON, Boolean
+from sqlalchemy import String, Text, ForeignKey, Integer, DateTime, JSON, Boolean, Float
 from sqlalchemy.orm import Mapped, mapped_column
 
 from app.infrastructure.database.base import Base
@@ -64,4 +64,28 @@ class Tab(Base):
 
     is_searchable: Mapped[bool] = mapped_column(
         Boolean, default=True, nullable=False,
+    )
+
+    importance_score: Mapped[float] = mapped_column(
+        Float, default=50.0, nullable=False,
+    )
+
+    open_count: Mapped[int] = mapped_column(
+        Integer, default=1, nullable=False,
+    )
+
+    total_time_spent: Mapped[int] = mapped_column(
+        Integer, default=0, nullable=False,
+    )
+
+    last_opened_at: Mapped[datetime | None] = mapped_column(
+        DateTime, nullable=True,
+    )
+
+    last_chat_at: Mapped[datetime | None] = mapped_column(
+        DateTime, nullable=True,
+    )
+
+    chat_reference_count: Mapped[int] = mapped_column(
+        Integer, default=0, nullable=False,
     )

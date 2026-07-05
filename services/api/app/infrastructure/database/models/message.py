@@ -1,6 +1,6 @@
 from uuid import uuid4
 
-from sqlalchemy import Text, String, ForeignKey
+from sqlalchemy import Text, String, ForeignKey, Float
 
 from sqlalchemy.dialects.postgresql import JSON
 
@@ -29,3 +29,7 @@ class Message(Base):
     )
 
     sources: Mapped[list | None] = mapped_column(JSON, nullable=True)
+
+    importance: Mapped[float] = mapped_column(
+        Float, default=0.0
+    )

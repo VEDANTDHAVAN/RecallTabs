@@ -19,3 +19,10 @@ class MessageRepository:
                 Message.conversation_id == conversation_id
             ).all()
         )
+    
+    def update(self, message: Message):
+        self.db.add(message)
+        self.db.commit()
+        self.db.refresh(message)
+
+        return message

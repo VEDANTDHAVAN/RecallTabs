@@ -1,4 +1,17 @@
+from typing import TypedDict
+
 from app.services.embedding_service import EmbeddingService
+
+class ContextChunk(TypedDict):
+    tab_id: str
+    title: str
+    url: str
+    chunk_text: str
+    score: float
+
+class ContextResult(TypedDict):
+    context: str
+    chunks: list[ContextChunk]
 
 class ContextSelectionService:
     def __init__(
@@ -10,7 +23,7 @@ class ContextSelectionService:
         self.cluster_repository = cluster_repository
         self.embedder = EmbeddingService()
         
-    def build_context(self, question: str) -> str:
+    def build_context(self, question: str) -> ContextResult:
         embedding = self.embedder.embed(question)
 
         clusters = self.cluster_repository.search_by_embedding(
@@ -25,7 +38,7 @@ class ContextSelectionService:
             embedding, limit=12,
         )
 
-        context_parts = []
+        context_parts: list[str] = []
 
         # Memory Clusters
         if clusters:
@@ -43,10 +56,14 @@ Summary: {cluster['summary']}
                 context_parts.append(f"""
 Session: {session['title']} \nSummary: {session['summary']}""")
                     
-        # Chunks
+        # Knowledge Chunks
         if chunks:
             context_parts.append("# Relevant Knowledge")
             for chunk in chunks:
                 context_parts.append(chunk["chunk_text"])
 
-        return "\n\n".join(context_parts)
+        context = "\n\n".join(context_parts)
+
+        return ContextResult(
+            context=context, chunks=chunks,
+        )

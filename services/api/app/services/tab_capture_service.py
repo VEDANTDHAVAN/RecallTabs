@@ -1,4 +1,5 @@
 from sqlalchemy.orm import Session
+from datetime import datetime
 
 from app.infrastructure.database.models.tab import Tab
 
@@ -13,6 +14,7 @@ from app.services.tab_ai_service import TabAIService
 from app.services.tab_similarity_service import TabSimilarityService
 from app.services.session_detection_service import SessionDetectionService
 from app.services.memory_cluster_service import MemoryClusterService
+from app.services.memory_importance_service import MemoryImportanceService
 
 from app.schemas.tab_capture import TabCaptureRequest
 
@@ -32,6 +34,7 @@ class TabCaptureService:
         self.cluster_service = MemoryClusterService(
             MemoryClusterRepository(db), SessionRepository(db)
         )
+        self.memory_service = MemoryImportanceService()
         self.db = db
 
     def capture(self, payload: TabCaptureRequest, user_id: str) -> Tab:
@@ -77,6 +80,11 @@ class TabCaptureService:
         saved_tab.keywords = analysis["keywords"]
         saved_tab.topic = analysis["topic"]
         saved_tab.category = analysis["category"]
+
+        saved_tab.open_count += 1
+        saved_tab.last_opened_at = datetime.utcnow()
+
+        self.memory_service.calculate(saved_tab)
 
         self.repository.update(saved_tab)
         # Session    

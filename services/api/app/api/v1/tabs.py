@@ -64,9 +64,11 @@ def create_tab(
     )
 
 @router.get("", response_model=list[TabResponse],)
-def list_tabs(db: Session = Depends(get_db)):
+def list_tabs(
+    db: Session = Depends(get_db),
+    current_user=Depends(get_current_user),
+):
     repository = TabRepository(db)
     service = TabService(repository)
-    current_user = Depends(get_current_user)
 
     return service.list_tabs(user_id=current_user.id)

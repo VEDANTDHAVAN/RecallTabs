@@ -1,55 +1,140 @@
+from datetime import datetime
+
 from app.infrastructure.database.models.message import Message
 
-from app.services.embedding_service import EmbeddingService
 from app.services.llm_service import LLMService
 from app.services.context_selection_service import ContextSelectionService
+from app.services.memory_importance_service import MemoryImportanceService
 
 from app.repositories.message_repository import MessageRepository
 from app.repositories.tab_chunk_repository import TabChunkRepository
 from app.repositories.session_repository import SessionRepository
 from app.repositories.memory_cluster_repository import MemoryClusterRepository
+from app.repositories.tab_repository import TabRepository
+
 
 class ConversationService:
-    def __init__(self, chunk_repository: TabChunkRepository,
-        message_repository: MessageRepository, session_repository: SessionRepository,
+    def __init__(
+        self,
+        chunk_repository: TabChunkRepository,
+        message_repository: MessageRepository,
+        session_repository: SessionRepository,
         cluster_repository: MemoryClusterRepository,
+        tab_repository: TabRepository,
     ):
         self.chunk_repository = chunk_repository
         self.message_repository = message_repository
-        self.embedder = EmbeddingService()
+        self.tab_repository = tab_repository
+
         self.llm = LLMService()
+        self.memory_service = MemoryImportanceService()
+
         self.context_selector = ContextSelectionService(
-            chunk_repository, session_repository, cluster_repository,
+            chunk_repository,
+            session_repository,
+            cluster_repository,
         )
 
-    def chat(self, conversation_id: str, question: str):
-        self.message_repository.create(
-            Message(
-                conversation_id=conversation_id, 
-                role="user", content=question,
-            )
-        )
+    def _update_memory_scores(self, chunks: list[dict]):
+        """
+        Increase importance score for tabs that were actually
+        used while answering the question.
+        """
 
-        seen = set()
-        sources = []
+        used_tabs = set()
 
-        context = self.context_selector.build_context(question)
+        for chunk in chunks:
 
-        messages = self.message_repository.get_messages(conversation_id)
+            tab_id = chunk["tab_id"]
 
-        history = [{
-            "role": m.role, "content": m.content,
-        } for m in messages]
+            if tab_id in used_tabs:
+                continue
 
-        answer = self.llm.chat(
-            question=question, context=context,
-            history=history,
-        )
+            used_tabs.add(tab_id)
 
+            tab = self.tab_repository.get_by_id(tab_id)
+
+            if not tab:
+                continue
+
+            tab.chat_reference_count += 1
+            tab.last_chat_at = datetime.utcnow()
+
+            self.memory_service.calculate(tab)
+
+            self.tab_repository.update(tab)
+
+    def chat(
+        self,
+        conversation_id: str,
+        question: str,
+    ):
+        # Save user message
         self.message_repository.create(
             Message(
                 conversation_id=conversation_id,
-                role="assistant", content=answer, sources=sources
+                role="user",
+                content=question,
+            )
+        )
+
+        # Retrieve context
+        context_data = self.context_selector.build_context(question)
+
+        context = context_data["context"]
+        chunks = context_data["chunks"]
+
+        # Conversation history
+        messages = self.message_repository.get_messages(
+            conversation_id
+        )
+
+        history = [
+            {
+                "role": message.role,
+                "content": message.content,
+            }
+            for message in messages
+        ]
+
+        # Ask LLM
+        answer = self.llm.chat(
+            question=question,
+            context=context,
+            history=history,
+        )
+
+        # Sources
+        seen = set()
+        sources = []
+
+        for chunk in chunks:
+            url = chunk["url"]
+
+            if url in seen:
+                continue
+
+            seen.add(url)
+
+            sources.append(
+                {
+                    "title": chunk["title"],
+                    "url": url,
+                }
+            )
+
+        self._update_memory_scores(chunks)
+
+        # Save assistant response
+        self.message_repository.create(
+            Message(
+                conversation_id=conversation_id,
+                role="assistant",
+                content=answer,
+                sources=sources,
+                importance=self.memory_service.calculate(
+                    question, answer, sources,
+                ),
             )
         )
 
@@ -57,43 +142,79 @@ class ConversationService:
             "answer": answer,
             "sources": sources,
         }
-    
+
     def stream_chat(
-        self, question: str,
+        self,
+        question: str,
         conversation_id: str,
     ):
-        context = self.context_selector.build_context(question)
+        context_data = self.context_selector.build_context(
+            question
+        )
 
-        messages = self.message_repository.get_messages(conversation_id)
+        context = context_data["context"]
+        chunks = context_data["chunks"]
+
+        messages = self.message_repository.get_messages(
+            conversation_id
+        )
 
         history = [
             {
                 "role": message.role,
                 "content": message.content,
-            } for message in messages
+            }
+            for message in messages
         ]
 
-        # save user message immediately
+        # Save user message
         self.message_repository.create(
             Message(
                 conversation_id=conversation_id,
-                role="user", content=question,
+                role="user",
+                content=question,
             )
         )
 
         answer = ""
 
         for token in self.llm.stream_chat(
-            question=question, context=context,
+            question=question,
+            context=context,
             history=history,
         ):
             answer += token
             yield token
 
-        # save assistant response after streaming completes
+        seen = set()
+        sources = []
+
+        for chunk in chunks:
+            url = chunk["url"]
+
+            if url in seen:
+                continue
+
+            seen.add(url)
+
+            sources.append(
+                {
+                    "title": chunk["title"],
+                    "url": url,
+                }
+            )
+
+        self._update_memory_scores(chunks)
+
+        # Save assistant message
         self.message_repository.create(
             Message(
                 conversation_id=conversation_id,
-                role="assistant", content=answer,
+                role="assistant",
+                content=answer,
+                sources=sources,
+                importance=self.memory_service.calculate(
+                    question, answer, sources,
+                ),
             )
         )
