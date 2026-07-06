@@ -22,7 +22,7 @@ SELECT DISTINCT on (t.id)
     t.id as tab_id,
     t.title, t.url,
     t.summary, t.topic,
-    t.favicon, t.created_at, 
+    t.favicon, t.captured_at, 
     1 - (
         tc.embedding <=> CAST(:embedding AS vector)
     ) AS score
@@ -40,7 +40,7 @@ AND t.url NOT LIKE 'edge://%'
 AND t.url NOT LIKE '%supabase.com/dashboard%'
 ORDER BY
     t.id, tc.embedding <=> CAST(:embedding AS vector),
-    t.created_at DESC
+    t.captured_at DESC
 LIMIT :limit     
 """)
 
@@ -64,7 +64,7 @@ LIMIT :limit
                 "summary": row.summary,
                 "topic": row.topic,
                 "favicon": row.favicon,
-                "created_at": row.created_at,
+                "captured_at": row.captured_at,
                 "score": score,
             })
 

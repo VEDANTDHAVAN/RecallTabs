@@ -8,6 +8,7 @@ from app.repositories.tab_chunk_repository import TabChunkRepository
 from app.repositories.tab_relationship_repository import TabRelationshipRepository
 from app.repositories.session_repository import SessionRepository
 from app.repositories.memory_cluster_repository import MemoryClusterRepository
+from app.repositories.topic_repository import TopicRepository
 
 from app.services.tab_embedding_service import TabEmbeddingService
 from app.services.tab_ai_service import TabAIService
@@ -15,6 +16,7 @@ from app.services.tab_similarity_service import TabSimilarityService
 from app.services.session_detection_service import SessionDetectionService
 from app.services.memory_cluster_service import MemoryClusterService
 from app.services.memory_importance_service import MemoryImportanceService
+from app.services.topic_graph_service import TopicGraphService
 
 from app.schemas.tab_capture import TabCaptureRequest
 
@@ -35,6 +37,7 @@ class TabCaptureService:
             MemoryClusterRepository(db), SessionRepository(db)
         )
         self.memory_service = MemoryImportanceService()
+        self.topic_graph = TopicGraphService(TopicRepository(db))
         self.db = db
 
     def capture(self, payload: TabCaptureRequest, user_id: str) -> Tab:
@@ -76,10 +79,15 @@ class TabCaptureService:
         # AI Metadata 
         analysis = self.ai_service.analyze(saved_tab.content or "")
 
+        topic = self.topic_graph.get_or_create(
+            title=analysis["topic"], summary=analysis["summary"],
+        )
+
         saved_tab.summary = analysis["summary"]
         saved_tab.keywords = analysis["keywords"]
-        saved_tab.topic = analysis["topic"]
         saved_tab.category = analysis["category"]
+
+        saved_tab.topic_id = topic.id 
 
         saved_tab.open_count += 1
         saved_tab.last_opened_at = datetime.utcnow()

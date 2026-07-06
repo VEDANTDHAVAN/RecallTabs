@@ -2,7 +2,7 @@ from uuid import uuid4
 from datetime import datetime
 
 from sqlalchemy import String, Text, ForeignKey, Integer, DateTime, JSON, Boolean, Float
-from sqlalchemy.orm import Mapped, mapped_column
+from sqlalchemy.orm import Mapped, mapped_column, relationship
 
 from app.infrastructure.database.base import Base
 
@@ -54,8 +54,12 @@ class Tab(Base):
         JSON, nullable=True
     )
 
-    topic: Mapped[str | None] = mapped_column(
-        String, nullable=True
+    topic_id: Mapped[str | None] = mapped_column(
+        ForeignKey("topics.id"), nullable=True
+    )
+
+    topic_ref = relationship(
+        "Topic", back_populates="tabs",
     )
 
     category: Mapped[str | None] = mapped_column(

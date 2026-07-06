@@ -1,17 +1,52 @@
 # RecallTabs
 
-RecallTabs is an AI-powered browser memory platform that turns saved tabs into a searchable, conversational knowledge base. It combines a Chrome extension, a FastAPI backend, and a lightweight web interface so users can capture browsing context, search it semantically, and ask questions over their saved tabs.
+RecallTabs is an AI-powered browser memory platform that turns saved tabs into a searchable, conversational knowledge base. The project already has a working foundation across the browser extension, backend API, and memory intelligence layers, and the next milestone is to turn that foundation into a more polished, reliable product experience.
 
-## What is implemented
+## Current state
 
-The repository already contains the core product surface for a working recall experience:
+The core product loop is now functional:
 
-- A Manifest V3 Chrome extension with a popup experience, background worker, and content-script entry points.
-- Automatic tab capture and metadata extraction from browsing activity.
-- A FastAPI backend with routers for tabs, search, ask, related tabs, topics, knowledge graphs, sessions, clusters, timeline, conversations, chat, and streaming chat.
-- Semantic memory features built around chunking, embeddings, vector search, and OpenAI-backed answer generation.
-- Conversation and message persistence so chat can continue across sessions.
-- A web app shell for future dashboard-style experiences.
+- browser tabs can be captured and stored
+- content can be indexed and searched semantically
+- users can ask questions over saved context
+- conversations and chat history are persisted
+- memory structures such as topics, sessions, clusters, and timelines are available
+
+This means the project is no longer just an early prototype; it is now a working MVP foundation ready for product hardening and user experience refinement.
+
+## Recommended next development phase
+
+### Phase 7: Product stabilization and end-to-end experience polish
+
+This should be the next focus because the system is already technically capable, but it needs stronger consistency across the user experience.
+
+Primary goals:
+
+- make search and chat behavior more reliable and predictable
+- tighten authentication and user-context handling across routes
+- improve the extension UI so memory workflows feel cohesive
+- add stronger testing around capture, search, chat, and session flows
+- prepare the product for real-world usage with better observability and deployment readiness
+
+Suggested sub-phases:
+
+- Phase 7A: Search and chat contract stabilization
+- Phase 7B: Extension memory UX and popup workflow polish
+- Phase 7C: Automated tests and reliability hardening
+- Phase 7D: Deployment, observability, and environment readiness
+
+## Development roadmap
+
+| Phase | Status | Focus |
+| --- | --- | --- |
+| Phase 1 | Completed | Backend foundation and API infrastructure |
+| Phase 2 | Completed | Authentication and user model foundation |
+| Phase 3 | Completed | Browser extension foundation and tab capture |
+| Phase 4 | Completed | Semantic memory, embeddings, and retrieval |
+| Phase 5 | Completed | Knowledge organization, topics, relationships, sessions, and clusters |
+| Phase 6 | Completed | Conversation, chat, and saved-context interaction |
+| Phase 7 | Upcoming | Product stabilization, UX polish, reliability, and tests |
+| Phase 8 | Upcoming | Personalization, collections, reminders, and collaborative memory workflows |
 
 ## Architecture
 
@@ -59,7 +94,7 @@ packages/
 
 ### Tab capture and storage
 
-The extension can capture page content and metadata, then send it to the backend through the tab capture API. Stored data includes title, URL, summary, favicon, description, word count, and capture metadata.
+The extension can capture page content and metadata and send it to the backend through the tab capture API. Stored data includes title, URL, summary, favicon, description, word count, and capture metadata.
 
 ### Semantic search
 
@@ -71,7 +106,7 @@ Users can ask questions over saved tabs and receive answers grounded in retrieve
 
 ### Memory organization
 
-The platform builds higher-level memory structures through topics, related-tab relationships, knowledge graph data, sessions, clusters, and timeline views.
+The platform builds higher-level memory structures through topics, related-tab relationships, knowledge graphs, sessions, clusters, and timeline views.
 
 ## Local development
 
@@ -80,7 +115,7 @@ The platform builds higher-level memory structures through topics, related-tab r
 - Node.js 18+
 - pnpm
 - Python 3.11+
-- Access to a PostgreSQL-compatible database with pgvector support
+- PostgreSQL-compatible database with pgvector support
 - OpenAI API key
 - Clerk environment values if auth is enabled
 
@@ -119,7 +154,7 @@ cd services/api
 uvicorn app.main:app --reload
 ```
 
-The API should be available at http://localhost:8000 and exposes a health endpoint at /health.
+The API will be available at http://localhost:8000 and exposes a health endpoint at /health.
 
 ### 4. Run the web app
 
@@ -135,68 +170,13 @@ pnpm --filter @recalltabs/extension dev
 
 Then load the extension from the generated build output in your browser using the standard Chrome extension development flow.
 
-## Current status
-
-Implemented and wired in the current codebase:
-
-- Extension foundation and tab capture flow
-- FastAPI backend and API routing
-- Semantic search and RAG-style ask workflow
-- Topic, cluster, session, timeline, conversation, and chat capabilities
-- Initial web shell and extension UI integration
-
-## Known follow-ups
-
-The current codebase is functional, but a few areas are still worth hardening:
-
-- tighten authentication consistency across routes
-- align the search payloads between backend and extension UI
-- stabilize streaming chat behavior and constructor wiring
-- add broader automated tests around API and service layers
-- polish the extension popup and dashboard experience
-
-## Next step
-
-The next iteration should focus on making the product feel more cohesive: better auth enforcement, more stable chat/search UX, and a more complete end-to-end extension experience.
-
-Phase 7 should focus on stabilizing the product loop:
-
-```text
-capture tabs -> search saved memory -> ask/chat with sources -> revisit useful pages
-```
-
-Recommended split:
-
-- Phase 7A: Search and chat contract stabilization
-- Phase 7B: Extension memory UI
-- Phase 7C: minimal tests for capture, search, and chat
-
-## Development
-
-Install dependencies:
+## Development commands
 
 ```bash
 pnpm install
-```
-
-Run all workspace development tasks:
-
-```bash
 pnpm dev
-```
-
-Run the API:
-
-```bash
 cd services/api
 uvicorn app.main:app --reload
-```
-
-Run migrations:
-
-```bash
-cd services/api
-alembic upgrade head
 ```
 
 Build the extension:
@@ -205,17 +185,12 @@ Build the extension:
 pnpm --filter @recalltabs/extension build
 ```
 
-Load the extension from:
+## Verification notes
 
-```text
-apps/extension/dist
-```
+The current codebase has been exercised through the working backend and extension setup. The next phase should focus on:
 
-## Verification
+- stronger API and service test coverage
+- more stable chat/search integration
+- better auth consistency and error handling
+- a smoother extension user experience
 
-Recently verified:
-
-- `python -m compileall app`
-- `pnpm --filter @recalltabs/extension build`
-
-The backend still needs integration tests with database, OpenAI, and authenticated route coverage.

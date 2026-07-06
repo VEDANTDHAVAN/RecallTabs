@@ -11,7 +11,7 @@ from app.repositories.tab_chunk_repository import TabChunkRepository
 from app.repositories.session_repository import SessionRepository
 from app.repositories.memory_cluster_repository import MemoryClusterRepository
 from app.repositories.tab_repository import TabRepository
-
+from app.repositories.topic_repository import TopicRepository
 
 class ConversationService:
     def __init__(
@@ -21,10 +21,12 @@ class ConversationService:
         session_repository: SessionRepository,
         cluster_repository: MemoryClusterRepository,
         tab_repository: TabRepository,
+        topic_repository: TopicRepository,
     ):
         self.chunk_repository = chunk_repository
         self.message_repository = message_repository
         self.tab_repository = tab_repository
+        self.topic_repository = topic_repository
 
         self.llm = LLMService()
         self.memory_service = MemoryImportanceService()
@@ -63,6 +65,9 @@ class ConversationService:
             self.memory_service.calculate(tab)
 
             self.tab_repository.update(tab)
+
+            if tab.topic_id:
+                self.topic_repository.increment_importance(tab.topic_id)
 
     def chat(
         self,
