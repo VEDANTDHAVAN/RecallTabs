@@ -50,7 +50,7 @@ If the answer cannot be found in the context, say:
         )
         print(context)
 
-        return response.choices[0].message.content
+        return response.choices[0].message.content or ""
     
     def complete(self, prompt: str):
         response = client.chat.completions.create(
@@ -62,7 +62,7 @@ If the answer cannot be found in the context, say:
         temperature=0
         )
 
-        return response.choices[0].message.content
+        return response.choices[0].message.content or ""
     
     def chat(self, question: str, context: str, history: list):
         messages: list[ChatCompletionMessageParam] = [
@@ -95,7 +95,7 @@ Context: {context} Question: {question}
             temperature=0.2, max_tokens=500,
         )
 
-        return response.choices[0].message.content
+        return response.choices[0].message.content or ""
     
     def stream_chat(
         self, question: str, context: str,

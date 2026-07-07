@@ -59,7 +59,8 @@ Content: {content[:12000]}
         )
 
         try:
-            entities = json.loads(response)
+            response_text = response or ""
+            entities = json.loads(response_text)
 
             if isinstance(entities, list):
                 return entities
