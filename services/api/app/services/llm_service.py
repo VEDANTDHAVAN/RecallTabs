@@ -149,3 +149,8 @@ Context: {context} Question: {question}
 
             if delta.content:
                 yield delta.content
+
+    def json_chat(self, prompt: str):
+        return self.chat(question=prompt,
+          context="", history=[],
+        )

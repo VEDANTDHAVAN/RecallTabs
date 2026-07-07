@@ -93,3 +93,8 @@ class Tab(Base):
     chat_reference_count: Mapped[int] = mapped_column(
         Integer, default=0, nullable=False,
     )
+
+    entities = relationship(
+        "TabEntity", back_populates="tab",
+        cascade="all, delete-orphan",
+    )

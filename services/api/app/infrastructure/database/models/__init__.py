@@ -7,7 +7,11 @@ from app.infrastructure.database.models.conversation import Conversation
 from app.infrastructure.database.models.message import Message
 from app.infrastructure.database.models.memory_cluster import MemoryCluster
 from app.infrastructure.database.models.topic import Topic
+from app.infrastructure.database.models.entity import Entity
+from app.infrastructure.database.models.entity_alias import EntityAlias
+from app.infrastructure.database.models.tab_entity import TabEntity
 
 __all__ = ["Tab", "User", "TabChunk", "Session", "Conversation", "Message",
-    "TabRelationship", "MemoryCluster", "Topic"
+    "TabRelationship", "MemoryCluster", "Topic", "Entity", "EntityAlias", 
+    "TabEntity"
 ]
