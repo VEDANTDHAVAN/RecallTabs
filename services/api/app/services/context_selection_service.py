@@ -16,16 +16,20 @@ class ContextResult(TypedDict):
 class ContextSelectionService:
     def __init__(
         self, chunk_repository, topic_repository,
-        session_repository, cluster_repository,
+        session_repository, cluster_repository, graph_context_service,
     ):
         self.chunk_repository = chunk_repository
         self.session_repository = session_repository
         self.cluster_repository = cluster_repository
         self.embedder = EmbeddingService()
         self.topic_repository = topic_repository
+        
+        self.graph_context = graph_context_service
 
     def build_context(self, question: str) -> ContextResult:
         embedding = self.embedder.embed(question)
+
+        related_entities = self.graph_context.expand(question)
 
         clusters = self.cluster_repository.search_by_embedding(
             embedding, limit=3,
@@ -44,6 +48,11 @@ class ContextSelectionService:
         )
 
         context_parts: list[str] = []
+
+        # Related Entities
+        if related_entities:
+            context_parts.append('# Related Concepts')
+            context_parts.append(", ".join(sorted(related_entities)))
 
         # Memory Clusters
         if clusters:
