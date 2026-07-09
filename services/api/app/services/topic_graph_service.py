@@ -3,7 +3,7 @@ from app.infrastructure.database.models.topic import Topic
 from app.repositories.topic_repository import TopicRepository
 from app.services.embedding_service import EmbeddingService
 
-from typing import cast
+from typing import cast, Optional
 
 class TopicGraphService:
     SIMILARITY_THRESHOLD = 0.88
@@ -23,21 +23,21 @@ class TopicGraphService:
         if existing is not None:
             return existing
         
+        # Semantic search
         embedding = self.embedder.embed(title)
 
-        similar = self.repository.search_by_embedding(
+        candidates = self.repository.search_by_embedding(
             embedding, limit=1,
         )
 
-        if similar:
-            best = similar[0]
+        for candidate in candidates:
+            if candidate["score"] >= self.SIMILARITY_THRESHOLD:
+                topic = self.repository.get_by_id(candidate["id"])
 
-            if best["score"] >= self.SIMILARITY_THRESHOLD:
-                topic = self.repository.get_by_id(best["id"])
-
-                if topic is not None:
+                if topic:
                     return topic
                 
+        # Create new Topic
         topic = Topic(
             title=title, summary=summary,
             embedding=embedding, importance=1.0,
@@ -45,4 +45,14 @@ class TopicGraphService:
 
         created = self.repository.create(topic)
 
-        return cast(Topic, created)
+        if created is None:
+            raise RuntimeError("Failed to create topic.")
+        
+        return created
+    
+    def increment_importance(
+        self, topic_id: str, amount: float = 1.0,
+    ):
+        self.repository.increment_importance(
+            topic_id, amount,
+        )

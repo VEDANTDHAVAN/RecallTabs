@@ -73,3 +73,11 @@ class GraphRepository:
                         related.add(other_tab.topic_ref)
 
         return list(related)
+    
+    def get_tab(self, tab_id: str):
+        return (
+            self.db.query(Tab).filter(Tab.id == tab_id).first()
+        )
+    
+    def get_topic_tabs(self, topic_id: str):
+        return self.get_tabs_for_topic(topic_id)

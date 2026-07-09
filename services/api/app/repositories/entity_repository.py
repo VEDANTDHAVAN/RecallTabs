@@ -1,4 +1,4 @@
-from sqlalchemy import text
+from sqlalchemy import text, func
 from sqlalchemy.orm import Session
 
 from app.infrastructure.database.models.entity import Entity
@@ -26,7 +26,7 @@ class EntityRepository:
     
     def get_by_name(self, name: str) -> Entity | None:
         return (
-            self.db.query(Entity).filter(Entity.name == name).first()
+            self.db.query(Entity).filter(func.lower(Entity.name) == name.lower()).first()
         )
 
     def search_by_embedding(self, embedding: list[float], limit: int = 5) -> list[dict]:

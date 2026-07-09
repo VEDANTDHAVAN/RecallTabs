@@ -22,12 +22,17 @@ class EntityGraphService:
     ) -> Entity:
         name = name.strip()
 
+        if not name:
+            raise ValueError("Entity name cannot be empty.")
+
+        # Exact Match
         existing = self.entity_repository.get_by_name(name)
 
         if existing:
             existing.importance += 1
             return self.entity_repository.update(existing)
         
+        # Alias Match
         alias = self.alias_repository.get(name)
 
         if alias:
@@ -36,7 +41,8 @@ class EntityGraphService:
             if entity:
                 entity.importance += 1
                 return self.entity_repository.update(entity)
-            
+
+        # Semantic Match    
         embedding = self.embedder.embed(name)
 
         similar = self.entity_repository.search_by_embedding(
@@ -50,11 +56,15 @@ class EntityGraphService:
                 entity = self.entity_repository.get_by_id(best["id"])
 
                 if entity:
-                    self.alias_repository.create(
-                        EntityAlias(
-                            entity_id=entity.id, alias=name,
+                    # Avoid duplicate aliases
+                    existing_alias = self.alias_repository.get(name)
+
+                    if not existing_alias:
+                        self.alias_repository.create(
+                            EntityAlias(
+                                entity_id=entity.id, alias=name,
+                            )
                         )
-                    )
 
                     entity.importance += 1
 
