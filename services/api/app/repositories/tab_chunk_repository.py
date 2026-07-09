@@ -77,17 +77,15 @@ LIMIT :limit
 
         query = text("""
 SELECT
-    tc.chunk_text, t.id AS tab_id, t.title, t.url,
-    t.summary, t.topic, t.favicon,
-    1-(tc.embedding <=> CAST(:embedding AS vector))
-    AS score
+    tc.tab_id,
+    tc.chunk_text,
+    t.title,
+    t.url,
+    1 - (tc.embedding <=> CAST(:embedding AS vector)) AS score
 FROM tab_chunk tc
 JOIN tabs t
-    ON tc.tab_id = t.id
-WHERE 
-    LENGTH(tc.chunk_text) > 80
-ORDER BY
-    tc.embedding <=> CAST(:embedding AS vector)
+ON tc.tab_id = t.id
+ORDER BY tc.embedding <=> CAST(:embedding AS vector)
 LIMIT :limit
 """)
         rows = self.db.execute(

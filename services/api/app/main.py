@@ -14,6 +14,7 @@ from app.api.v1.timeline import router as timeline_router
 from app.api.v1.chat import router as chat_router
 from app.api.v1.conversations import router as conversations_router
 from app.api.v1.chat_stream import router as chat_stream_router
+from app.api.v1.graph import router as graph_router
 
 configure_logging()
 
@@ -36,6 +37,7 @@ app.include_router(timeline_router, tags=["Timeline"])
 app.include_router(chat_router, prefix="/api/v1")
 app.include_router(conversations_router, prefix="/api/v1")
 app.include_router(chat_stream_router, prefix="/api/v1")
+app.include_router(graph_router)
 
 origins = [
     "http://localhost:3000",

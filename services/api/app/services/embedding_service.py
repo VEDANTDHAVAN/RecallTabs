@@ -1,12 +1,12 @@
 from openai import OpenAI
 
-from app.core.config import settings
+from app.core.config import Settings
 
 
 class EmbeddingService:
     def __init__(self):
         self.client = OpenAI(
-            api_key=settings.OPENAI_API_KEY,
+            api_key=Settings.OPENAI_API_KEY,
         )
 
         self.model = "text-embedding-3-small"

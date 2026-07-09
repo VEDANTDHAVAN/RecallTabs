@@ -3,8 +3,9 @@ from datetime import datetime
 from app.infrastructure.database.models.message import Message
 
 from app.services.llm_service import LLMService
-from app.services.context_selection_service import ContextSelectionService
+from app.services.context_selection_service import ContextSelectionService, ContextChunk
 from app.services.memory_importance_service import MemoryImportanceService
+from app.services.graph_context_service import GraphContextService
 
 from app.repositories.message_repository import MessageRepository
 from app.repositories.tab_chunk_repository import TabChunkRepository
@@ -22,6 +23,7 @@ class ConversationService:
         cluster_repository: MemoryClusterRepository,
         tab_repository: TabRepository,
         topic_repository: TopicRepository,
+        graph_context_service: GraphContextService,
     ):
         self.chunk_repository = chunk_repository
         self.message_repository = message_repository
@@ -32,12 +34,12 @@ class ConversationService:
         self.memory_service = MemoryImportanceService()
 
         self.context_selector = ContextSelectionService(
-            chunk_repository,
-            session_repository,
-            cluster_repository,
+            chunk_repository=chunk_repository, session_repository=session_repository,
+            cluster_repository=cluster_repository, topic_repository=topic_repository,
+            graph_context_service=graph_context_service,
         )
 
-    def _update_memory_scores(self, chunks: list[dict]):
+    def _update_memory_scores(self, chunks: list[ContextChunk]):
         """
         Increase importance score for tabs that were actually
         used while answering the question.

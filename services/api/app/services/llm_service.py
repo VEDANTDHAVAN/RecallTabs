@@ -105,7 +105,7 @@ Context: {context} Question: {question}
             ChatCompletionSystemMessageParam(
                 role="system", content=(
                     "You answer questions using ONLY the provided context."
-                    "If the answwr cannot be found , say you don't know."
+                    "If the answer cannot be found , say you don't know."
                 ),
             ),
             ChatCompletionSystemMessageParam(
