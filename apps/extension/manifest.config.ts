@@ -7,7 +7,9 @@ export default defineManifest({
     version: "0.1.0",
 
     permissions: [
-        "tabs", "storage"
+        "tabs",
+        "storage",
+        "alarms"
     ],
 
     host_permissions: [
@@ -21,10 +23,10 @@ export default defineManifest({
         type: "module"
     },
 
-    "content_scripts": [
+    content_scripts: [
         {
-            "matches": ["<all_urls>"],
-            "js": ["src/content/index.ts"],
+            matches: ["<all_urls>"],
+            js: ["src/content/index.ts"],
         }
     ],
 

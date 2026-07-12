@@ -2,16 +2,18 @@ from sqlalchemy.orm import Session
 from datetime import datetime
 
 from app.infrastructure.database.models.tab import Tab
+from app.infrastructure.database.models.entity import Entity
 
 from app.repositories.tab_repository import TabRepository
 from app.repositories.tab_chunk_repository import TabChunkRepository
-from app.repositories.tab_relationship_repository import TabRelationshipRepository
 from app.repositories.session_repository import SessionRepository
 from app.repositories.memory_cluster_repository import MemoryClusterRepository
 from app.repositories.topic_repository import TopicRepository
 from app.repositories.entity_repository import EntityRepository
 from app.repositories.entity_alias_repository import EntityAliasRepository
 from app.repositories.tab_entity_repository import TabEntityRepository
+from app.repositories.tab_relationship_repository import TabRelationshipRepository
+from app.repositories.entity_relationship_repository import EntityRelationshipRepository
 
 from app.services.tab_embedding_service import TabEmbeddingService
 from app.services.tab_ai_service import TabAIService
@@ -23,6 +25,7 @@ from app.services.topic_graph_service import TopicGraphService
 from app.services.entity_graph_service import EntityGraphService
 from app.services.entity_extraction_service import EntityExtractionService
 from app.services.tab_entity_service import TabEntityService
+from app.services.relationship_extraction_service import RelationshipExtractionService
 
 from app.schemas.tab_capture import TabCaptureRequest
 
@@ -30,7 +33,8 @@ class TabCaptureService:
     def __init__(self, db: Session):
         self.repository = TabRepository(db)
         self.chunk_repository = (TabChunkRepository(db))
-        self.relationship_repository = (TabRelationshipRepository(db))
+        self.tab_relationship_repository = (TabRelationshipRepository(db))
+        self.entity_relationship_repository = (EntityRelationshipRepository(db))
         self.entity_repository = EntityRepository(db)
         self.alias_repository = EntityAliasRepository(db)
         self.tab_entity_repository = TabEntityRepository(db)
@@ -38,7 +42,7 @@ class TabCaptureService:
         self.embedding_service = (TabEmbeddingService(self.chunk_repository))
         self.ai_service = TabAIService()
         self.similarity_service = (TabSimilarityService(
-            self.chunk_repository, self.relationship_repository,
+            self.chunk_repository, self.tab_relationship_repository,
         ))
         self.session_service = SessionDetectionService(
             SessionRepository(db), self.repository,
@@ -57,6 +61,7 @@ class TabCaptureService:
             relation_repository=self.tab_entity_repository,
         )
         self.topic_graph = TopicGraphService(TopicRepository(db))
+        self.relationship_service = RelationshipExtractionService()
         self.db = db
 
     def capture(self, payload: TabCaptureRequest, user_id: str) -> Tab:
@@ -119,6 +124,40 @@ class TabCaptureService:
             tab_id=saved_tab.id, title=saved_tab.title,
             content=saved_tab.content,
         )
+
+        # Relationships
+        relationships = (
+            self.relationship_service.extract(saved_tab.content)
+        )
+
+        entity_cache: dict[str, Entity] = {}
+
+        for rel in relationships:
+            if(rel["source"] == rel["target"] or not rel["relation"]):
+                continue
+
+            if rel["source"] not in entity_cache:
+                entity_cache[rel["source"]] = (
+                    self.entity_graph_service.get_or_create(
+                        rel["source"], "concept",
+                    )
+                )
+
+            source = entity_cache[rel["source"]]
+
+            if rel["target"] not in entity_cache:
+                entity_cache[rel["target"]] = (
+                    self.entity_graph_service.get_or_create(
+                        rel["target"], "concept",
+                    )
+                )
+            
+            target = entity_cache[rel["target"]]
+
+            self.entity_relationship_repository.create_if_missing(
+                source.id, target.id, rel["relation"], confidence=rel.get("confidence", 1.0),
+            )
+
         # Session    
         session = self.session_service.assign_session(saved_tab)
         if session:

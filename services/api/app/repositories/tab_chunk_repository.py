@@ -21,7 +21,7 @@ SELECT DISTINCT on (t.id)
 
     t.id as tab_id,
     t.title, t.url,
-    t.summary, t.topic,
+    t.summary, tp.title AS topic,
     t.favicon, t.captured_at, 
     1 - (
         tc.embedding <=> CAST(:embedding AS vector)
@@ -29,6 +29,8 @@ SELECT DISTINCT on (t.id)
 FROM tab_chunk tc
 JOIN tabs t
     ON tc.tab_id = t.id
+LEFT JOIN topics tp
+    ON tp.id = t.topic_id
 WHERE t.summary IS NOT NULL
       AND LENGTH(t.summary) > 30 
 AND t.url NOT LIKE 'http://localhost%'
@@ -81,10 +83,15 @@ SELECT
     tc.chunk_text,
     t.title,
     t.url,
+    t.summary,
+    tp.title AS topic,
+    t.favicon,
     1 - (tc.embedding <=> CAST(:embedding AS vector)) AS score
 FROM tab_chunk tc
 JOIN tabs t
 ON tc.tab_id = t.id
+LEFT JOIN topics tp
+ON tp.id = t.topic_id
 ORDER BY tc.embedding <=> CAST(:embedding AS vector)
 LIMIT :limit
 """)

@@ -12,7 +12,8 @@ class EntityRelationship(Base):
 
     __table_args__=(
         UniqueConstraint(
-            "entity_a_id", "entity_b_id",
+            "source_entity_id", "target_entity_id", 
+            "relationship_type", name="uq_entity_relationship",
         ),
     )
 
@@ -20,16 +21,20 @@ class EntityRelationship(Base):
         String, primary_key=True, default=lambda: str(uuid4()),
     )
 
-    entity_a_id: Mapped[str] = mapped_column(
-        ForeignKey("entities.id"),
+    source_entity_id: Mapped[str] = mapped_column(
+        ForeignKey("entities.id"), index=True,
     )
 
-    entity_b_id: Mapped[str] = mapped_column(
-        ForeignKey("entities.id"),
+    target_entity_id: Mapped[str] = mapped_column(
+        ForeignKey("entities.id"), index=True,
     )
 
-    weight: Mapped[float] = mapped_column(
-        Float, default=1.0,
+    relationship_type: Mapped[str] = mapped_column(
+        String(64),
+    )
+
+    confidence: Mapped[float] = mapped_column(
+        Float, default=1.0, nullable=False,
     )
 
     created_at: Mapped[datetime] = mapped_column(

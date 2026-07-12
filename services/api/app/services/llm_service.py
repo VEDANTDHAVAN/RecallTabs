@@ -14,6 +14,7 @@ settings = get_settings()
 
 client = OpenAI(api_key=settings.OPENAI_API_KEY)
 
+
 class LLMService:
     def answer(
       self, question: str, context: str,  

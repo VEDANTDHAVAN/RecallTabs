@@ -42,12 +42,13 @@ class TabRepository:
     
     def topic_statistics(self):
         query = text("""
-SELECT topic,
+SELECT tp.title AS topic,
 COUNT(*) as count
-FROM tabs
-WHERE topic IS NOT NULL
-AND topic <> ''
-GROUP BY topic
+FROM tabs t
+LEFT JOIN topics tp ON tp.id = t.topic_id
+WHERE tp.title IS NOT NULL
+AND tp.title <> ''
+GROUP BY tp.title
 ORDER BY count DESC
 """)
         result = self.db.execute(query)
@@ -61,23 +62,24 @@ ORDER BY count DESC
         self, query: str, limit: int = 10,
     ):
         sql = text("""
-SELECT id, title, url, favicon,
-    summary, topic, ts_rank(
+SELECT t.id, t.title, t.url, t.favicon,
+    t.summary, tp.title AS topic, ts_rank(
         to_tsvector(
             'english', 
-            coalesce(title, '') || ' ' ||
-            coalesce(summary, '') || ' ' ||
-            coalesce(content, '')
+            coalesce(t.title, '') || ' ' ||
+            coalesce(t.summary, '') || ' ' ||
+            coalesce(t.content, '')
         ),
         plainto_tsquery('english', :query)
     ) AS score
-FROM tabs
-WHERE is_searchable = TRUE
+FROM tabs t
+LEFT JOIN topics tp ON tp.id = t.topic_id
+WHERE t.is_searchable = TRUE
 AND
     to_tsvector(
-     'english', coalesce(title, '') || ' ' ||
-     coalesce(summary, '') || ' ' ||
-     coalesce(content, '')
+     'english', coalesce(t.title, '') || ' ' ||
+     coalesce(t.summary, '') || ' ' ||
+     coalesce(t.content, '')
     )
     @@ plainto_tsquery('english', :query)
 ORDER BY score DESC
@@ -114,7 +116,7 @@ LIMIT :limit
                 "title": tab.title,
                 "url": tab.url,
                 "summary": tab.summary,
-                "topic": tab.topic,
+                "topic": tab.topic_ref.title if tab.topic_ref else None,
                 "favicon": tab.favicon,
                 "score": 100.0,
             }
