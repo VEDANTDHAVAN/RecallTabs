@@ -9,7 +9,11 @@ class Settings(BaseSettings):
     ENVIRONMENT: str = "development"
 
     DATABASE_URL: str = ""
+    LLM_PROVIDER: str = "ollama"
+    OLLAMA_HOST: str = "http://localhost:11434"
+    OLLAMA_MODEL: str = "phi3:mini"
     OPENAI_API_KEY: str = ""
+    OLLAMA_API_KEY: str | None = None
 
     CLERK_JWKS_URL: str = ""
     CLERK_ISSUER: str = ""
@@ -24,3 +28,5 @@ class Settings(BaseSettings):
 @lru_cache
 def get_settings() -> Settings:
     return Settings()
+
+settings = get_settings()

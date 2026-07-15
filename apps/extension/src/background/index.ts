@@ -100,8 +100,12 @@ async function handleTabCapture(tabId: number, tab?: chrome.tabs.Tab): Promise<v
   }
 
   try {
-    const response = await chrome.tabs.sendMessage(tabId, { type: "EXTRACT_PAGE" });
-    if (!response?.url) {
+    const response = await sendMessageWithRetry(tabId, {
+      type: "EXTRACT_PAGE",
+    });
+    if (!tab.url || tab.url.startsWith("chrome://") || tab.url.startsWith("about:") ||
+     tab.url.startsWith("devtools://") || tab.url.startsWith("chrome-extension://")
+    ) {
       return;
     }
 
@@ -115,7 +119,21 @@ async function handleTabCapture(tabId: number, tab?: chrome.tabs.Tab): Promise<v
       word_count: response.wordCount,
     });
   } catch (error) {
-    logger.error("Failed to extract tab content", error);
+    const message =
+        error instanceof Error
+            ? error.message : String(error);
+    if (
+        message.includes("Receiving end does not exist")
+    ) {
+        logger.debug(
+          "Content script not ready yet"
+        );
+        return;
+    }
+
+    logger.error(
+        "Failed to extract tab content", error,
+    );
   }
 }
 
@@ -137,6 +155,20 @@ async function broadcastStatus(status: QueueStatus): Promise<void> {
   } catch (error) {
     logger.debug("Status broadcast skipped", error);
   }
+}
+
+async function sendMessageWithRetry(
+  tabId: number, message: unknown, retries = 5,
+): Promise<any> {
+  for(let i = 0; i < retries; i++) {
+    try {
+      return await chrome.tabs.sendMessage(tabId, message);
+    } catch (error) {
+      await new Promise(resolve => setTimeout(resolve, 250));
+    }
+  }
+
+  throw new Error("Content script unavailable");
 }
 
 void initialize();

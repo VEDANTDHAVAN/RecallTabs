@@ -50,11 +50,14 @@ Content:
         
         response = self.llm.complete(prompt)
 
-        if response is None:
+        if not response or not response.strip():
             raise ValueError("LLM returned empty response.")
-
-        analysis = json.loads(response)
-
-        print(analysis)
+        
+        try:
+            analysis = json.loads(response)
+        except json.JSONDecodeError as e:
+            raise ValueError(
+                f"Invalid JSON returned by LLM:\n{response}"
+            ) from e
 
         return analysis

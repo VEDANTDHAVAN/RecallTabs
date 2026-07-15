@@ -1,157 +1,89 @@
-from openai import OpenAI
-from app.core.config import get_settings
-
 from typing import Generator
 
-from openai.types.chat import (
-    ChatCompletionMessageParam, 
-    ChatCompletionUserMessageParam,
-    ChatCompletionAssistantMessageParam,
-    ChatCompletionSystemMessageParam,
-)
+from app.providers.ollama_local import OllamaLocalProvider
 
-settings = get_settings()
+SYSTEM_PROMPT = """
+You are RecallTabs.
 
-client = OpenAI(api_key=settings.OPENAI_API_KEY)
+You answer questions using the user's saved browser memory.
 
+Always prioritize:
+1. Retrieved browsing context
+2. Previous conversation
 
-class LLMService:
-    def answer(
-      self, question: str, context: str,  
-    ):
-        response = client.chat.completions.create(
-            model="gpt-4o-mini", messages=[
-                {
-                    "role": "system",
-                    "content": """
-You are RecallTabs, an AI memory assistant.
-
-You answer ONLY from the provided browsing context.
-
-If the answer is not present in the context, reply exactly:
-
+If the answer cannot be found in the provided context, reply exactly:
 I couldn't find that information in your saved tabs.
 
 Be concise and factual.
 """
-                },
-                {
-                    "role": "user",
-                    "content": f"""
-                Use the following saved browser context to answer.
-                CONTEXT: {context}
-                QUESTION: {question}
 
-Answer only using the context above.
-If the answer cannot be found in the context, say:
-"I couldn't find that information in your saved tabs."
+class LLMService:
+    def __init__(self):
+        self.provider = OllamaLocalProvider()
+
+    def answer(self, question: str, context: str) -> str:
+        prompt = f"""
+Context: {context}
+Question: {question}
+
+Answer ONLY using the context above.
 """
-                }
-            ], temperature=0.2, max_tokens=300,
+        return self.provider.chat(
+            system=SYSTEM_PROMPT, user=prompt,
         )
-        print(context)
-
-        return response.choices[0].message.content or ""
     
-    def complete(self, prompt: str):
-        response = client.chat.completions.create(
-            model="gpt-4o-mini", messages=[{
-                "role": "system", "content": "Return valid JSON only."
-            },{
-                "role": "user", "content": prompt
-            }],
-        temperature=0
+    def complete(self, prompt: str) -> str:
+        return self.provider.chat(
+            system="Return valid JSON only.", user=prompt,
         )
-
-        return response.choices[0].message.content or ""
     
-    def chat(self, question: str, context: str, history: list):
-        messages: list[ChatCompletionMessageParam] = [
-            {
-                "role": "system",
-                "content": """You are RecallTabs.
-You answer questions using the user's saved browser memory.
+    def chat(
+        self, question: str, context: str,
+        history: list[dict],
+    ) -> str:
+        history_text = ""
 
-Use:
-1. Retrieved memory context
-2. Previous conversation history
+        for message in history:
+            history_text += (
+                f"{message['role']}: "
+                f"{message['content']}\n"
+            )
 
-If information is unavailable, say:
-'I couldn't find that information in your saved tabs.'
+        prompt = f"""
+Conversation History: {history_text}
 
-Be concise and accurate."""
-            }
-        ]
-        messages.extend(history)
+Retrieved Context: {context}
 
-        messages.append({
-            "role": "user",
-            "content": f"""
-Context: {context} Question: {question}
+Current Question: {question}
 """
-        })
-
-        response = client.chat.completions.create(
-            model="gpt-4.1-mini", messages=messages,
-            temperature=0.2, max_tokens=500,
+        return self.provider.chat(
+            system=SYSTEM_PROMPT, user=prompt,
         )
-
-        return response.choices[0].message.content or ""
     
     def stream_chat(
         self, question: str, context: str,
         history: list[dict],
     ) -> Generator[str, None, None]:
-        messages: list[ChatCompletionMessageParam] = [
-            ChatCompletionSystemMessageParam(
-                role="system", content=(
-                    "You answer questions using ONLY the provided context."
-                    "If the answer cannot be found , say you don't know."
-                ),
-            ),
-            ChatCompletionSystemMessageParam(
-                role="system", content=f"Context:\n{context}",
-            ),
-        ]
+        history_text = ""
 
-        # Add previous conversations
         for message in history:
-            if message["role"] == "user":
-                messages.append(
-                    ChatCompletionUserMessageParam(
-                        role="user", content=message["content"],
-                    )
-                )
-            else:
-                messages.append(
-                    ChatCompletionAssistantMessageParam(
-                        role="assistant", content=message["content"],
-                    )
-                )
-        
-        # Current question
-        messages.append(
-            ChatCompletionUserMessageParam(
-                role="user", content=question,
+            history_text += (
+                f"{message['role']}: "
+                f"{message['content']}\n"
             )
+
+        prompt = f"""
+Conversation History: {history_text}
+
+Retrieved Context: {context}
+
+Current Question: {question}
+"""
+        yield from self.provider.stream_chat(
+            system=SYSTEM_PROMPT, user=prompt,
         )
 
-        response = client.chat.completions.create(
-            model="gpt-5", messages=messages,
-            temperature=0.2, stream=True,
-        )
-
-        for chunk in response:
-
-            if not chunk.choices:
-                continue
-
-            delta = chunk.choices[0].delta
-
-            if delta.content:
-                yield delta.content
-
-    def json_chat(self, prompt: str):
-        return self.chat(question=prompt,
-          context="", history=[],
+    def json_chat(self, prompt: str) -> str:
+        return self.provider.chat(
+            system="Return valid JSON only.", user=prompt,
         )

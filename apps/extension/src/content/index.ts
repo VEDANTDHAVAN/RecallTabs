@@ -1,4 +1,6 @@
+console.log("[RecallTabs] Content script loaded");
 import { logger } from "../shared/logger";
+//import "./injectSidebar";
 
 function extractPageContent() {
   const title = document.title;
