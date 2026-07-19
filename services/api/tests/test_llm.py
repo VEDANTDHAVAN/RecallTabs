@@ -1,16 +1,25 @@
+import pytest
 from app.services.llm_service import LLMService
 
-llm = LLMService()
 
-print(llm.complete(
-    """Return valid JSON only.
-    
-    {
-      "topic":"",
-      "summary":"",
-      "keywords":[]
-    }
+@pytest.mark.asyncio
+async def test_complete():
+    llm = LLMService()
 
-    Text: FastAPI is a modern Python framework.
-    """
-))
+    result = await llm.complete(
+        """
+        Return valid JSON only.
+
+        {
+          "topic":"",
+          "summary":"",
+          "keywords":[]
+        }
+
+        Text: FastAPI is a modern Python framework.
+        """
+    )
+
+    print(result)
+
+    assert result is not None

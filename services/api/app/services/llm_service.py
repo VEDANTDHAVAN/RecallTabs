@@ -1,6 +1,7 @@
-from typing import Generator
+from collections.abc import AsyncGenerator
 
-from app.providers.ollama_local import OllamaLocalProvider
+from app.providers.config import ProviderConfig
+from app.providers.factory import ProviderFactory
 
 SYSTEM_PROMPT = """
 You are RecallTabs.
@@ -18,36 +19,36 @@ Be concise and factual.
 """
 
 class LLMService:
-    def __init__(self):
-        self.provider = OllamaLocalProvider()
+    def __init__(self, config: ProviderConfig | None = None):
+        if config is None:
+            config = ProviderConfig(
+                provider="ollama", model="phi3:mini",
+                base_url="http://localhost:11434/v1",
+            )
 
-    def answer(self, question: str, context: str) -> str:
+        self.provider = ProviderFactory.create(config)
+
+    async def answer(self, question: str, context: str,) -> str:
         prompt = f"""
 Context: {context}
+
 Question: {question}
 
 Answer ONLY using the context above.
 """
-        return self.provider.chat(
+        return await self.provider.chat(
             system=SYSTEM_PROMPT, user=prompt,
         )
     
-    def complete(self, prompt: str) -> str:
-        return self.provider.chat(
-            system="Return valid JSON only.", user=prompt,
-        )
+    async def complete(self, prompt: str) -> str:
+        return await self.provider.completion(prompt)
     
-    def chat(
-        self, question: str, context: str,
-        history: list[dict],
+    async def chat(
+        self, question: str, context: str, history: list[dict],
     ) -> str:
-        history_text = ""
-
-        for message in history:
-            history_text += (
-                f"{message['role']}: "
-                f"{message['content']}\n"
-            )
+        history_text = "\n".join(
+            f"{msg['role']}: {msg['content']}" for msg in history
+        )
 
         prompt = f"""
 Conversation History: {history_text}
@@ -56,21 +57,16 @@ Retrieved Context: {context}
 
 Current Question: {question}
 """
-        return self.provider.chat(
-            system=SYSTEM_PROMPT, user=prompt,
+        return await self.provider.chat(
+            system=SYSTEM_PROMPT, user=prompt
         )
     
-    def stream_chat(
-        self, question: str, context: str,
-        history: list[dict],
-    ) -> Generator[str, None, None]:
-        history_text = ""
-
-        for message in history:
-            history_text += (
-                f"{message['role']}: "
-                f"{message['content']}\n"
-            )
+    async def stream_chat(
+        self, question: str, context: str, history: list[dict],
+    ) -> AsyncGenerator[str, None]:
+        history_text = "\n".join(
+            f"{msg['role']}: {msg['content']}" for msg in history
+        )
 
         prompt = f"""
 Conversation History: {history_text}
@@ -79,11 +75,20 @@ Retrieved Context: {context}
 
 Current Question: {question}
 """
-        yield from self.provider.stream_chat(
+        stream = await self.provider.stream_chat(
             system=SYSTEM_PROMPT, user=prompt,
         )
 
-    def json_chat(self, prompt: str) -> str:
-        return self.provider.chat(
+        async for chunk in stream:
+            yield chunk
+
+    async def json_chat(self, prompt: str) -> dict:
+        return await self.provider.json_chat(
             system="Return valid JSON only.", user=prompt,
         )
+    
+    async def health(self) -> bool:
+        return await self.provider.health()
+    
+    async def list_models(self) -> list[str]:
+        return await self.provider.list_models()

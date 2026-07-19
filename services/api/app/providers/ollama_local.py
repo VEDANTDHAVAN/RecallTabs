@@ -1,46 +1,87 @@
-from ollama import Client
-from app.core.config import settings
+from __future__ import annotations
+
+import json
+from typing import Any, AsyncGenerator
+
+from openai import AsyncOpenAI
+
 from app.providers.base import BaseLLMProvider
+from app.providers.config import ProviderConfig
 
-class OllamaLocalProvider(BaseLLMProvider):
-    def __init__(self):
-        self.client = Client(
-            host=settings.OLLAMA_HOST,
+class OllamaProvider(BaseLLMProvider):
+    def __init__(self, config: ProviderConfig):
+        super().__init__(config)
+
+        self.client = AsyncOpenAI(
+            api_key="ollama", base_url=config.base_url.rstrip("/")
+            if config.base_url else "http://localhost:11434/v1",
         )
 
-        self.model = settings.OLLAMA_MODEL
+    async def chat(
+        self, *, system: str | None = None, user: str, **kwargs: Any
+    ) -> str:
+        messages = []
 
-    def chat(self, *, system: str, user: str) -> str:
-        response = self.client.chat(
-            model=self.model, messages=[
-                {
-                    "role": "system", "content": system,
-                },
-                {
-                    "role": "user", "content": user,
-                },
-            ], format="json",
+        if system:
+            messages.append({"role": "system", "content": system})
+
+        messages.append({"role": "user", "content": user})
+
+        response = await self.client.chat.completions.create(
+            model=self.config.model, messages=messages,
+            stream=False, **kwargs,
         )
 
-        return response["message"]["content"]
+        return response.choices[0].message.content or ""
     
-    def stream_chat(self, *, system: str, user: str):
-        stream = self.client.chat(
-            model=self.model, stream=True,
-            messages=[
-                {
-                    "role": "system", "content": system,
-                },
-                {
-                    "role": "user", "content": user,
-                },
-            ],
+    async def stream_chat(self, *, system: str | None, user: str, **kwargs: Any) -> AsyncGenerator[str, None]:
+        messages = []
+
+        if system:
+            messages.append({"role": "system", "content": system})
+
+        messages.append({"role": "user", "content": user})
+
+        stream = await self.client.chat.completions.create(
+            model=self.config.model, messages=messages,
+            stream=True, **kwargs,
         )
 
-        for chunk in stream:
-            yield chunk["message"]["content"]
+        async for chunk in stream:
+            if not chunk.choices:
+                continue
 
-    def completion(self, prompt: str) -> str:
-        return self.chat(
-            system="", user=prompt,
+            delta = chunk.choices[0].delta.content
+
+            if delta:
+                yield delta
+
+    async def completion(self, prompt: str, **kwargs: Any) -> str:
+        return await self.chat(system=None, user=prompt, **kwargs)
+    
+    async def json_chat(self, *, system: str | None = None, user: str, **kwargs: Any) -> dict[str, Any]:
+        messages = []
+
+        if system:
+            messages.append({"role": "system", "content": system})
+
+        messages.append({"role": "user", "content": user})
+
+        response = await self.client.chat.completions.create(
+            model=self.config.model, messages=messages,
+            response_format={"type": "json_object"},
+            stream=False, **kwargs,
         )
+
+        return json.loads(response.choices[0].message.content or "{}")
+    
+    async def list_models(self) -> list[str]:
+        models = await self.client.models.list()
+        return sorted(model.id for model in models.data)
+    
+    async def health(self) -> bool:
+        try:
+            await self.client.models.list()
+            return True
+        except Exception:
+            return False
