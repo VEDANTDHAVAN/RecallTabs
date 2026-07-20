@@ -1,6 +1,6 @@
-from app.providers.config import ProviderConfig
-from app.providers.factory import ProviderFactory
-from app.providers.ollama_local import OllamaProvider
+from app.providers.llm.config import ProviderConfig
+from app.providers.llm.factory import ProviderFactory
+from app.providers.llm.ollama_local import OllamaProvider
 
 def test_create_ollama():
     config = ProviderConfig(

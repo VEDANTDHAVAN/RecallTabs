@@ -3,7 +3,7 @@ from __future__ import annotations
 from abc import ABC, abstractmethod
 from typing import Any, AsyncGenerator
 
-from app.providers.config import ProviderConfig
+from app.providers.llm.config import ProviderConfig
 
 class BaseLLMProvider(ABC):
     def __init__(self, config: ProviderConfig):

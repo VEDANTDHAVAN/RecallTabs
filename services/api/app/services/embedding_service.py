@@ -4,8 +4,10 @@ from ollama import Client
 
 from app.core.config import get_settings
 
+from app.providers.embeddings.config import EmbeddingProviderConfig
+from app.providers.embeddings.factory import EmbeddingProviderFactory
 
-class EmbeddingService:
+class EmbeddingLLMService:
     def __init__(self):
         settings = get_settings()
         # self.client = OpenAI(api_key=settings.OPENAI_API_KEY,)
@@ -38,3 +40,19 @@ class EmbeddingService:
             item.embedding
             for item in response.data
         ]
+    
+class EmbeddingService:
+    def __init__(self, config: EmbeddingProviderConfig):
+        self.provider = EmbeddingProviderFactory.create(config)
+
+    async def embed(self, text: str):
+        return await self.provider.embed(text)
+    
+    async def embed_batch(self, texts: list[str]):
+        return await self.provider.embed_batch(texts)
+    
+    async def health(self):
+        return await self.provider.health()
+    
+    async def list_models(self):
+        return await self.provider.list_models()

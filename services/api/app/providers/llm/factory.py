@@ -1,10 +1,10 @@
 from __future__ import annotations
 
-from app.providers.base import BaseLLMProvider
-from app.providers.config import ProviderConfig
-from app.providers.ollama_local import OllamaProvider
-from app.providers.openai_provider import OpenAIProvider
-from app.providers.gemini_provider import GeminiProvider
+from app.providers.llm.base import BaseLLMProvider
+from app.providers.llm.config import ProviderConfig
+from app.providers.llm.ollama_local import OllamaProvider
+from app.providers.llm.openai_provider import OpenAIProvider
+from app.providers.llm.gemini_provider import GeminiProvider
 
 class ProviderFactory:
     _providers: dict[str, type[BaseLLMProvider]] = {

@@ -5,8 +5,8 @@ from typing import Any, AsyncGenerator
 
 from google import genai
 
-from app.providers.base import BaseLLMProvider
-from app.providers.config import ProviderConfig
+from app.providers.llm.base import BaseLLMProvider
+from app.providers.llm.config import ProviderConfig
 
 class GeminiProvider(BaseLLMProvider):
     def __init__(self, config: ProviderConfig):
