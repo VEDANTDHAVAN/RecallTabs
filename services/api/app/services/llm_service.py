@@ -1,7 +1,7 @@
 from collections.abc import AsyncGenerator
 
-from app.providers.config import ProviderConfig
-from app.providers.factory import ProviderFactory
+from app.providers.llm.config import ProviderConfig
+from app.providers.llm.factory import ProviderFactory
 
 SYSTEM_PROMPT = """
 You are RecallTabs.

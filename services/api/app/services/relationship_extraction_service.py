@@ -21,10 +21,10 @@ class RelationshipExtractionService:
     def __init__(self):
         self.llm = LLMService()
 
-    def extract(self, text: str):
-        response = self.llm.complete(
-            PROMPT.format(text=text)
-        )
+    async def extract(self, text: str):
+            response = await self.llm.complete(
+                PROMPT.format(text=text)
+            )
 
         try:
             return json.loads(response)

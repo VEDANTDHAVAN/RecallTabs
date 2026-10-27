@@ -1,3 +1,4 @@
+import asyncio
 from typing import TypedDict
 
 from app.services.embedding_service import EmbeddingService
@@ -31,12 +32,12 @@ class ContextSelectionService:
         self.embedder = EmbeddingService()
         self.intent_service = RetrievalIntentService()
 
-    def build_context(self, question: str) -> ContextResult:
-        embedding = self.embedder.embed(question)
+    async def build_context(self, question: str) -> ContextResult:
+            embedding = await self.embedder.embed(question)
 
         intent = self.intent_service.classify(question)
 
-        related_entities = self.graph_context.expand(question)
+        related_entities = await self.graph_context.expand(question)
 
         clusters = []
         sessions = []

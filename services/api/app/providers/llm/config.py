@@ -13,9 +13,9 @@ class ProviderConfig:
 
     timeout: float = 120.0
     
-    temperature: float = 0.7
+    temperature: float = 0.2
     max_tokens: int | None = None
-    top_p: float | None = None
+    top_p: float = 1.0
     seed: int | None = None
 
     extra: dict[str, Any] = field(default_factory=dict)

@@ -71,11 +71,11 @@ class ConversationService:
             if tab.topic_id:
                 self.topic_repository.increment_importance(tab.topic_id)
 
-    def chat(
-        self,
-        conversation_id: str,
-        question: str,
-    ):
+    async def chat(
+            self,
+            conversation_id: str,
+            question: str,
+        ):
         # Save user message
         self.message_repository.create(
             Message(
@@ -86,7 +86,7 @@ class ConversationService:
         )
 
         # Retrieve context
-        context_data = self.context_selector.build_context(question)
+        context_data = await self.context_selector.build_context(question)
 
         context = context_data["context"]
         chunks = context_data["chunks"]

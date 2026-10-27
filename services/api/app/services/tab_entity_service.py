@@ -15,13 +15,13 @@ class TabEntityService:
         self.extraction_service = extraction_service
         self.relation_repository = relation_repository
 
-    def process(self, tab_id: str, title: str, content: str):
-        entities = self.extraction_service.extract(title, content)
+    async def process(self, tab_id: str, title: str, content: str):
+            entities = await self.extraction_service.extract(title, content)
 
         for item in entities:
             entity = self.entity_service.get_or_create(
                 name=item["name"], entity_type=item["type"],
-                summary=item.get("summary"),
+                description=item.get("summary"),
             )
 
             existing = self.relation_repository.get(

@@ -34,14 +34,14 @@ def debug_user(db: Session = Depends(get_db)):
     }
 
 @router.post("/capture")
-def capture_tab(
+async def capture_tab(
     payload: TabCaptureRequest,
     db: Session = Depends(get_db),
     #current_user=Depends(get_current_user),
 ):
     service = TabCaptureService(db)
 
-    tab = service.capture(
+    tab = await service.capture(
         payload=payload, user_id="125657ed-f496-4735-8391-696b96be49c8",
     )
 

@@ -101,7 +101,7 @@ class TabCaptureService:
         # Relationships
         self.similarity_service.build_relationships(saved_tab.id)
         # AI Metadata 
-        analysis = self.ai_service.analyze(saved_tab.content or "")
+        analysis = await self.ai_service.analyze(saved_tab.content or "")
 
         topic = self.topic_graph.get_or_create(
             title=analysis["topic"], summary=analysis["summary"],

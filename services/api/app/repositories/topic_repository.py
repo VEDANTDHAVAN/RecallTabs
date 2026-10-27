@@ -42,11 +42,11 @@ class TopicRepository:
         query = text("""
 SELECT
     *,
-    1-(embedding <=> CAST(:embedding AS vector))
+    1-(embedding <=> Entity.embedding.cosine_distance(embedding))
     AS score
 FROM topics
 WHERE embedding IS NOT NULL
-ORDER BY embedding <=> CAST(:embedding AS vector)
+ORDER BY embedding <=> Entity.embedding.cosine_distance(embedding)
 LIMIT :limit
 """)
 

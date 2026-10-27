@@ -8,7 +8,7 @@ from openai import AsyncOpenAI
 from app.providers.llm.base import BaseLLMProvider
 from app.providers.llm.config import ProviderConfig
 
-class OpenAIProvider(BaseLLMProvider):
+class OpenAICompatibleProvider(BaseLLMProvider):
     def __init__(self, config: ProviderConfig):
         self.config = config
 

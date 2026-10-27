@@ -6,49 +6,49 @@ class TabAIService:
     def __init__(self):
         self.llm = LLMService()
 
-    def analyze(self, content: str):
-        prompt = f"""
-Analyze this webpage. Return ONLY JSON.
-Format:{{
-"summary":"",
-"keywords":[],
-"topic":"",
-"category":""
-}}
+    async def analyze(self, content: str):
+            prompt = f"""
+    Analyze this webpage. Return ONLY JSON.
+    Format:{{
+    "summary":"",
+    "keywords":[],
+    "topic":"",
+    "category":""
+    }}
 
-Rules:
+    Rules:
 
-- topic should be SHORT.
-- Maximum 2-5 words.
+    - topic should be SHORT.
+    - Maximum 2-5 words.
 
-Examples:
+    Examples:
 
-Bad:
-"Agentic Reinforcement Learning in Large Language Models"
+    Bad:
+    "Agentic Reinforcement Learning in Large Language Models"
 
-Good:
-"Agentic AI"
+    Good:
+    "Agentic AI"
 
-Bad:
-"Transformer in deep learning"
+    Bad:
+    "Transformer in deep learning"
 
-Good:
-"Transformers"
+    Good:
+    "Transformers"
 
-Bad:
-"Database Management and SQL Editing"
+    Bad:
+    "Database Management and SQL Editing"
 
-Good:
-"Database Management"
+    Good:
+    "Database Management"
 
-Return JSON only.
+    Return JSON only.
 
-Content:
+    Content:
 
-{content}
-"""
+    {content}
+    """
         
-        response = self.llm.complete(prompt)
+            response = await self.llm.complete(prompt)
 
         if not response or not response.strip():
             raise ValueError("LLM returned empty response.")

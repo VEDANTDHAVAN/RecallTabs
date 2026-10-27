@@ -24,7 +24,7 @@ SELECT DISTINCT on (t.id)
     t.summary, tp.title AS topic,
     t.favicon, t.captured_at, 
     1 - (
-        tc.embedding <=> CAST(:embedding AS vector)
+        tc.embedding <=> Entity.embedding.cosine_distance(embedding)
     ) AS score
 FROM tab_chunk tc
 JOIN tabs t
@@ -41,7 +41,7 @@ AND t.url NOT LIKE 'chrome-extension://%'
 AND t.url NOT LIKE 'edge://%'
 AND t.url NOT LIKE '%supabase.com/dashboard%'
 ORDER BY
-    t.id, tc.embedding <=> CAST(:embedding AS vector),
+    t.id, tc.embedding <=> Entity.embedding.cosine_distance(embedding),
     t.captured_at DESC
 LIMIT :limit     
 """)
@@ -86,13 +86,13 @@ SELECT
     t.summary,
     tp.title AS topic,
     t.favicon,
-    1 - (tc.embedding <=> CAST(:embedding AS vector)) AS score
+    1 - (tc.embedding <=> Entity.embedding.cosine_distance(embedding)) AS score
 FROM tab_chunk tc
 JOIN tabs t
 ON tc.tab_id = t.id
 LEFT JOIN topics tp
 ON tp.id = t.topic_id
-ORDER BY tc.embedding <=> CAST(:embedding AS vector)
+ORDER BY tc.embedding <=> Entity.embedding.cosine_distance(embedding)
 LIMIT :limit
 """)
         rows = self.db.execute(

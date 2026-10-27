@@ -39,13 +39,13 @@ class SessionRepository:
         vector_str = "[" + ",".join(map(str, embedding)) + "]"
 
         sql = text("""
-SELECT id, title, summary, embedding <=> CAST(:embedding AS vector)
-       AS distance
-FROM sessions
-WHERE embedding IS NOT NULL
-ORDER BY embedding <=> CAST(:embedding AS vector)
-LIMIT :limit 
-""")
+        SELECT id, title, summary, embedding <=> CAST(:embedding AS vector)
+               AS distance
+        FROM sessions
+        WHERE embedding IS NOT NULL
+        ORDER BY embedding <=> CAST(:embedding AS vector)
+        LIMIT :limit 
+        """)
         
         result = self.db.execute(
             sql, {

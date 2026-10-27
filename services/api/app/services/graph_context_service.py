@@ -14,10 +14,10 @@ class GraphContextService:
             entity_repository, traversal_repository,
         )
 
-    def expand(self, question: str) -> list[str]:
-        extracted = self.entity_extractor.extract(
-            question, question
-        )
+    async def expand(self, question: str) -> list[str]:
+            extracted = await self.entity_extractor.extract(
+                question, question
+            )
 
         related = set()
 

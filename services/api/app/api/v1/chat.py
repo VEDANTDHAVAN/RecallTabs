@@ -17,7 +17,7 @@ from app.services.conversation_service import ConversationService
 router = APIRouter(prefix="/chat", tags=["Chat"],)
 
 @router.post("/{conversation_id}")
-def chat(
+async def chat(
     conversation_id: str, payload: ChatRequest,
     db: Session = Depends(get_db),
 ):
@@ -27,4 +27,4 @@ def chat(
         TabRepository(db),
     )
 
-    return service.chat(conversation_id, payload.question)
+    return await service.chat(conversation_id, payload.question)

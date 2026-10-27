@@ -6,7 +6,7 @@ class EntityExtractionService:
     def __init__(self):
         self.llm = LLMService()
 
-    def extract(self, title: str, content: str) -> list[dict]:
+    async def extract(self, title: str, content: str) -> list[dict]:
         prompt = f"""
 You are an expert knowledge graph extraction engine.
 
@@ -53,7 +53,7 @@ Title: {title}
 Content: {content[:12000]}
 """
         
-        response = self.llm.chat(
+        response = await self.llm.chat(
             question=prompt, context="",
             history=[],
         )

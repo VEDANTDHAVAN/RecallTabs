@@ -1,3 +1,5 @@
+from datetime import datetime
+
 from app.infrastructure.database.models.entity import Entity
 from app.infrastructure.database.models.entity_alias import EntityAlias
 
@@ -11,17 +13,22 @@ class EntityGraphService:
 
     def __init__(self, entity_repository: EntityRepository,
        alias_repository: EntityAliasRepository,
+       embedding_service: EmbeddingService,
     ):
         self.entity_repository = entity_repository
         self.alias_repository = alias_repository
-        self.embedder = EmbeddingService()
+        self.embedding_service = embedding_service
 
-    def get_or_create(
+    @staticmethod
+    def normalize(name: str) -> str:
+        return " ".join(name.strip().split())
+
+    async def get_or_create(
         self, name: str, entity_type: str,
-        summary: str | None = None,
+        description: str | None = None, confidence: float = 1.0,
     ) -> Entity:
-        name = name.strip()
-
+        name = self.normalize(name)
+        
         if not name:
             raise ValueError("Entity name cannot be empty.")
 
@@ -30,6 +37,9 @@ class EntityGraphService:
 
         if existing:
             existing.importance += 1
+            existing.mention_count += 1
+            existing.last_seen_at = datetime.utcnow()
+
             return self.entity_repository.update(existing)
         
         # Alias Match
@@ -39,40 +49,43 @@ class EntityGraphService:
             entity = self.entity_repository.get_by_id(alias.entity_id)
 
             if entity:
+                entity.mention_count += 1
                 entity.importance += 1
+                entity.last_seen_at = datetime.utcnow()
+
                 return self.entity_repository.update(entity)
 
         # Semantic Match    
-        embedding = self.embedder.embed(name)
+        embedding = await self.embedding_service.embed(name)
 
-        similar = self.entity_repository.search_by_embedding(
-            embedding, limit=1,
+        candidates = self.entity_repository.search_by_embedding(
+            embedding, limit=5,
         )
 
-        if similar:
-            best = similar[0]
-
-            if best["score"] >= self.SIMILARITY_THRESHOLD:
-                entity = self.entity_repository.get_by_id(best["id"])
+        for candidate in candidates:
+            if (candidate["score"] >= self.SIMILARITY_THRESHOLD and candidate["entity_type"] == entity_type):
+                entity = self.entity_repository.get_by_id(candidate["id"])
 
                 if entity:
-                    # Avoid duplicate aliases
-                    existing_alias = self.alias_repository.get(name)
-
-                    if not existing_alias:
+                    if self.alias_repository.get(name) is None:
                         self.alias_repository.create(
                             EntityAlias(
                                 entity_id=entity.id, alias=name,
                             )
                         )
 
+                    entity.mention_count += 1
                     entity.importance += 1
+                    entity.last_seen_at = datetime.utcnow()
 
                     return self.entity_repository.update(entity)
-        
+
+        # Create New Entity
         entity = Entity(
-            name=name, entity_type=entity_type, summary=summary,
-            embedding=embedding, importance=1.0,
+            name=name, entity_type=entity_type,
+            description=description, embedding=embedding,
+            confidence=confidence, mention_count=1,
+            importance=1.0, last_seen_at=datetime.utcnow(),
         )
 
         return self.entity_repository.create(entity)

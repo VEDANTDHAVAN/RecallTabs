@@ -43,11 +43,11 @@ class MemoryClusterRepository:
         query = text("""
 SELECT 
     id, title, summary,
-    1 - (embedding <=> CAST(:embedding AS vector))
+    1 - (embedding <=> Entity.embedding.cosine_distance(embedding))
     AS score
 FROM memory_clusters
 ORDER BY
-    embedding <=> CAST(:embedding AS vector)
+    embedding <=> Entity.embedding.cosine_distance(embedding)
 LIMIT :limit
 """)
         result = self.db.execute(
@@ -69,11 +69,11 @@ LIMIT :limit
 
         sql = text("""
 SELECT id, title, summary, 
-        embedding <=> CAST(:embedding AS vector)
+        embedding <=> Entity.embedding.cosine_distance(embedding)
             AS distance
 FROM memory_clusters
 WHERE embedding IS NOT NULL
-ORDER BY embedding <=> CAST(:embedding AS vector)
+ORDER BY embedding <=> Entity.embedding.cosine_distance(embedding)
 LIMIT :limit
 """)
         result = self.db.execute(

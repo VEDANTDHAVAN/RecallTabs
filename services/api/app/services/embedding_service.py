@@ -42,7 +42,14 @@ class EmbeddingLLMService:
         ]
     
 class EmbeddingService:
-    def __init__(self, config: EmbeddingProviderConfig):
+    def __init__(self, config: EmbeddingProviderConfig | None = None):
+        if config is None:
+            config = EmbeddingProviderConfig(
+                provider="openai",
+                model="text-embedding-3-small",
+                api_key=get_settings().OPENAI_API_KEY,
+                dimensions=1536,
+            )
         self.provider = EmbeddingProviderFactory.create(config)
 
     async def embed(self, text: str):
