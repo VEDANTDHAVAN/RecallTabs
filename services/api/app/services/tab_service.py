@@ -19,6 +19,7 @@ class TabService:
         )
     
     def list_tabs(
-        self, user_id: str,
-    ): 
+            self, user_id: str,
+        ): 
+            return self.repository.list_by_user(user_id=user_id)
         return self.repository.list_by_user(user_id=user_id)

@@ -1,4 +1,4 @@
-from app.infrastructure.database.models.conversation import Conversation
+﻿from app.infrastructure.database.models.conversation import Conversation
 
 class ConversationManagementService:
     def __init__(self, repository):
@@ -12,15 +12,15 @@ class ConversationManagementService:
         )
 
         return self.repository.create(conversation)
-    
+
     def list(self, user_id: str):
         return self.repository.list_by_user(user_id)
-    
-    def get(self, conversation_id: str):
-        return self.repository.get(conversation_id)
-    
-    def rename(self, conversation_id: str, title: str):
-        return self.repository.update_title(conversation_id, title)
-    
-    def delete(self, conversation_id: str):
-        return self.repository.delete(conversation_id)
+
+    def get(self, conversation_id: str, user_id: str | None = None):
+        return self.repository.get(conversation_id, user_id=user_id)
+
+    def rename(self, conversation_id: str, title: str, user_id: str | None = None):
+        return self.repository.update_title(conversation_id, title, user_id=user_id)
+
+    def delete(self, conversation_id: str, user_id: str | None = None):
+        return self.repository.delete(conversation_id, user_id=user_id)

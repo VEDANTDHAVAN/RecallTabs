@@ -1,4 +1,4 @@
-from collections import defaultdict
+﻿from collections import defaultdict
 
 from app.services.embedding_service import EmbeddingService
 from app.services.search_intent_service import SearchIntentService, SearchIntent
@@ -11,18 +11,18 @@ class SearchService:
         self.chunk_repository = chunk_repository
         self.tab_repository = tab_repository
         self.embedder = EmbeddingService()
-        self.intent = SearchIntentService() 
+        self.intent = SearchIntentService()
 
-    def search(self, query: str,):
-        embedding = self.embedder.embed(query)
+    async def search(self, query: str, user_id: str):
+        embedding = await self.embedder.embed(query)
 
         semantic = self.chunk_repository.semantic_search(
-            embedding, limit=15,
+            embedding, limit=15, user_id=user_id,
         )
 
         keyword = self.tab_repository.keyword_search(
-            query, limit=15,
-        )
+                        user_id, query, limit=15,
+                    )
 
         results = self.rank_results(
             semantic, keyword,
@@ -31,26 +31,26 @@ class SearchService:
         intent = self.intent.detect(query)
 
         if intent == SearchIntent.KEYWORD:
-            keyword = self.tab_repository.keyword_search(query)
+            keyword = self.tab_repository.keyword_search(user_id, query)
 
             return keyword
-        
+
         elif intent == SearchIntent.SEMANTIC:
-            semantic = self.chunk_repository.semantic_search(embedding)
+            semantic = self.chunk_repository.semantic_search(embedding, user_id=user_id)
 
             return semantic
-        
+
         elif intent == SearchIntent.HYBRID:
-            semantic = self.chunk_repository.semantic_search(embedding)
-            keyword = self.tab_repository.keyword_search(query)
+            semantic = self.chunk_repository.semantic_search(embedding, user_id=user_id)
+            keyword = self.tab_repository.keyword_search(user_id, query)
 
             return self.rank_results(semantic, keyword)
-        
+
         elif intent == SearchIntent.DOMAIN:
-            return self.tab_repository.domain_search(query)
+            return self.tab_repository.domain_search(user_id, query)
 
         return results
-    
+
     def rank_results(self, semantic, keyword):
         # Reciprocal Rank Fusion (RRF)
         K = 60
@@ -70,9 +70,9 @@ class SearchService:
 
         ranked = sorted(
             scores.items(), reverse=True,
-            key=lambda x: x[1], 
+            key=lambda x: x[1],
         )
-        
+
         results = []
 
         for tab_id, score in ranked:

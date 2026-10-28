@@ -1,4 +1,5 @@
-from fastapi import APIRouter, Depends
+﻿from fastapi import APIRouter, Depends
+from app.auth.dependencies import get_current_user
 
 from sqlalchemy.orm import Session
 
@@ -18,12 +19,13 @@ router = APIRouter(
 )
 
 @router.post("", response_model=list[SearchResult])
-def search(
+async def search(
     payload: SearchRequest,
     db: Session = Depends(get_db),
+    current_user=Depends(get_current_user),
 ):
     chunk_repository = TabChunkRepository(db)
     tab_repository = TabRepository(db)
     service = SearchService(chunk_repository, tab_repository)
 
-    return service.search(payload.query)
+    return await service.search(payload.query, user_id=current_user.id)

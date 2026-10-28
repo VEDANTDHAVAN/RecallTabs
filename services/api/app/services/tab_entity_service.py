@@ -1,4 +1,4 @@
-from app.infrastructure.database.models.tab_entity import TabEntity
+﻿from app.infrastructure.database.models.tab_entity import TabEntity
 
 from app.repositories.tab_entity_repository import TabEntityRepository
 
@@ -16,7 +16,7 @@ class TabEntityService:
         self.relation_repository = relation_repository
 
     async def process(self, tab_id: str, title: str, content: str):
-            entities = await self.extraction_service.extract(title, content)
+        entities = await self.extraction_service.extract(title, content)
 
         for item in entities:
             entity = self.entity_service.get_or_create(

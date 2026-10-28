@@ -1,0 +1,117 @@
+﻿python : C:\Users\vedant\AppData\Roaming\Python\Python311\site-packages\requests\__init__.py:109: 
+RequestsDependencyWarning: urllib3 (2.6.3) or chardet (7.4.3)/charset_normalizer (3.4.4) doesn't match a supported 
+version!
+At line:1 char:56
++ ... t\Projects\RecallTabs\services\api"; python -m pytest -q 2>&1 | Out-F ...
++                                          ~~~~~~~~~~~~~~~~~~~~~~~~
+    + CategoryInfo          : NotSpecified: (C:\Users\vedant...ported version!:String) [], RemoteException
+    + FullyQualifiedErrorId : NativeCommandError
+ 
+  warnings.warn(
+
+=================================== ERRORS ====================================
+_____________________ ERROR collecting tests/test_json.py _____________________
+tests\test_json.py:19: in <module>
+    response = client.chat(
+..\..\..\..\AppData\Roaming\Python\Python311\site-packages\ollama\_client.py:387: in chat
+    return self._request(
+..\..\..\..\AppData\Roaming\Python\Python311\site-packages\ollama\_client.py:199: in _request
+    return cls(**self._request_raw(*args, **kwargs).json())
+..\..\..\..\AppData\Roaming\Python\Python311\site-packages\ollama\_client.py:145: in _request_raw
+    raise ConnectionError(CONNECTION_ERROR_MESSAGE) from None
+E   ConnectionError: Failed to connect to Ollama. Please check that Ollama is downloaded, running and accessible. https://ollama.com/download
+____________________ ERROR collecting tests/test_ollama.py ____________________
+tests\test_ollama.py:5: in <module>
+    response = client.chat(
+..\..\..\..\AppData\Roaming\Python\Python311\site-packages\ollama\_client.py:387: in chat
+    return self._request(
+..\..\..\..\AppData\Roaming\Python\Python311\site-packages\ollama\_client.py:199: in _request
+    return cls(**self._request_raw(*args, **kwargs).json())
+..\..\..\..\AppData\Roaming\Python\Python311\site-packages\ollama\_client.py:145: in _request_raw
+    raise ConnectionError(CONNECTION_ERROR_MESSAGE) from None
+E   ConnectionError: Failed to connect to Ollama. Please check that Ollama is downloaded, running and accessible. https://ollama.com/download
+____________________ ERROR collecting tests/test_stream.py ____________________
+..\..\..\..\AppData\Roaming\Python\Python311\site-packages\httpx\_transports\default.py:101: in map_httpcore_exceptions
+    yield
+..\..\..\..\AppData\Roaming\Python\Python311\site-packages\httpx\_transports\default.py:250: in handle_request
+    resp = self._pool.handle_request(req)
+..\..\..\..\AppData\Roaming\Python\Python311\site-packages\httpcore\_sync\connection_pool.py:256: in handle_request
+    raise exc from None
+..\..\..\..\AppData\Roaming\Python\Python311\site-packages\httpcore\_sync\connection_pool.py:236: in handle_request
+    response = connection.handle_request(
+..\..\..\..\AppData\Roaming\Python\Python311\site-packages\httpcore\_sync\connection.py:101: in handle_request
+    raise exc
+..\..\..\..\AppData\Roaming\Python\Python311\site-packages\httpcore\_sync\connection.py:78: in handle_request
+    stream = self._connect(request)
+..\..\..\..\AppData\Roaming\Python\Python311\site-packages\httpcore\_sync\connection.py:124: in _connect
+    stream = self._network_backend.connect_tcp(**kwargs)
+..\..\..\..\AppData\Roaming\Python\Python311\site-packages\httpcore\_backends\sync.py:207: in connect_tcp
+    with map_exceptions(exc_map):
+C:\Program Files\Python311\Lib\contextlib.py:158: in __exit__
+    self.gen.throw(typ, value, traceback)
+..\..\..\..\AppData\Roaming\Python\Python311\site-packages\httpcore\_exceptions.py:14: in map_exceptions
+    raise to_exc(exc) from exc
+E   httpcore.ConnectError: [WinError 10061] No connection could be made because the target machine actively refused it
+
+The above exception was the direct cause of the following exception:
+tests\test_stream.py:16: in <module>
+    for chunk in stream:
+..\..\..\..\AppData\Roaming\Python\Python311\site-packages\ollama\_client.py:184: in inner
+    with self._client.stream(*args, **kwargs) as r:
+C:\Program Files\Python311\Lib\contextlib.py:137: in __enter__
+    return next(self.gen)
+..\..\..\..\AppData\Roaming\Python\Python311\site-packages\httpx\_client.py:868: in stream
+    response = self.send(
+..\..\..\..\AppData\Roaming\Python\Python311\site-packages\httpx\_client.py:914: in send
+    response = self._send_handling_auth(
+..\..\..\..\AppData\Roaming\Python\Python311\site-packages\httpx\_client.py:942: in _send_handling_auth
+    response = self._send_handling_redirects(
+..\..\..\..\AppData\Roaming\Python\Python311\site-packages\httpx\_client.py:979: in _send_handling_redirects
+    response = self._send_single_request(request)
+..\..\..\..\AppData\Roaming\Python\Python311\site-packages\httpx\_client.py:1014: in _send_single_request
+    response = transport.handle_request(request)
+..\..\..\..\AppData\Roaming\Python\Python311\site-packages\httpx\_transports\default.py:249: in handle_request
+    with map_httpcore_exceptions():
+C:\Program Files\Python311\Lib\contextlib.py:158: in __exit__
+    self.gen.throw(typ, value, traceback)
+..\..\..\..\AppData\Roaming\Python\Python311\site-packages\httpx\_transports\default.py:118: in map_httpcore_exceptions
+    raise mapped_exc(message) from exc
+E   httpx.ConnectError: [WinError 10061] No connection could be made because the target machine actively refused it
+____________________ ERROR collecting tests/test_tab_ai.py ____________________
+..\..\..\..\AppData\Roaming\Python\Python311\site-packages\_pytest\python.py:492: in importtestmodule
+    mod = import_path(
+..\..\..\..\AppData\Roaming\Python\Python311\site-packages\_pytest\pathlib.py:591: in import_path
+    importlib.import_module(module_name)
+C:\Program Files\Python311\Lib\importlib\__init__.py:126: in import_module
+    return _bootstrap._gcd_import(name[level:], package, level)
+<frozen importlib._bootstrap>:1204: in _gcd_import
+    ???
+<frozen importlib._bootstrap>:1176: in _find_and_load
+    ???
+<frozen importlib._bootstrap>:1147: in _find_and_load_unlocked
+    ???
+<frozen importlib._bootstrap>:690: in _load_unlocked
+    ???
+..\..\..\..\AppData\Roaming\Python\Python311\site-packages\_pytest\assertion\rewrite.py:178: in exec_module
+    exec(co, module.__dict__)
+tests\test_tab_ai.py:1: in <module>
+    from app.services.tab_ai_service import TabAIService
+E     File "C:\Users\vedant\Projects\RecallTabs\services\api\app\services\tab_ai_service.py", line 53
+E       if not response or not response.strip():
+E                                               ^
+E   IndentationError: unindent does not match any outer indentation level
+============================== warnings summary ===============================
+tests\test_openai.py:5
+  C:\Users\vedant\Projects\RecallTabs\services\api\tests\test_openai.py:5: RuntimeWarning: coroutine 'LLMService.answer' was never awaited
+    print(
+  Enable tracemalloc to get traceback where the object was allocated.
+  See https://docs.pytest.org/en/stable/how-to/capture-warnings.html#resource-warnings for more info.
+
+-- Docs: https://docs.pytest.org/en/stable/how-to/capture-warnings.html
+=========================== short test summary info ===========================
+ERROR tests/test_json.py - ConnectionError: Failed to connect to Ollama. Plea...
+ERROR tests/test_ollama.py - ConnectionError: Failed to connect to Ollama. Pl...
+ERROR tests/test_stream.py - httpx.ConnectError: [WinError 10061] No connecti...
+ERROR tests/test_tab_ai.py
+!!!!!!!!!!!!!!!!!!! Interrupted: 4 errors during collection !!!!!!!!!!!!!!!!!!!
+1 warning, 4 errors in 18.93s

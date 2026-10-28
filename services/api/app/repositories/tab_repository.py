@@ -1,4 +1,4 @@
-from sqlalchemy.orm import Session
+﻿from sqlalchemy.orm import Session
 from sqlalchemy import text
 
 from app.infrastructure.database.models.tab import Tab
@@ -13,34 +13,43 @@ class TabRepository:
         self.db.refresh(tab)
 
         return tab
-    
-    def get_by_id(self, tab_id: str) -> Tab | None:
+
+    def get_by_id(self, tab_id: str, user_id: str | None = None) -> Tab | None:
+        q = self.db.query(Tab).filter(Tab.id == tab_id)
+        if user_id is not None:
+            q = q.filter(Tab.user_id == user_id)
+        return q.first()
+
+    def get_by_user_and_url(self, user_id: str, url: str) -> Tab | None:
         return (
-            self.db.query(Tab).filter(Tab.id == tab_id).first()
+            self.db.query(Tab)
+            .filter(Tab.user_id == user_id, Tab.url == url)
+            .first()
         )
-    
+
     def list_by_user(
         self, user_id: str,
     ) -> list[Tab]:
         return (
             self.db.query(Tab).filter(Tab.user_id == user_id).all()
         )
-    
+
     def update(self, tab):
         self.db.add(tab)
         self.db.commit()
         self.db.refresh(tab)
 
         return tab
-    
-    def get_timeline(self, limit: int = 100):
-        return (
-            self.db.query(Tab).order_by(
-                Tab.captured_at.desc()
-            ).limit(limit).all()
-        )
-    
-    def topic_statistics(self):
+
+    def get_timeline(self, user_id: str | None = None, limit: int = 100):
+        q = self.db.query(Tab)
+        if user_id is not None:
+            q = q.filter(Tab.user_id == user_id)
+        return q.order_by(
+            Tab.captured_at.desc()
+        ).limit(limit).all()
+
+    def topic_statistics(self, user_id: str | None = None):
         query = text("""
 SELECT tp.title AS topic,
 COUNT(*) as count
@@ -48,24 +57,26 @@ FROM tabs t
 LEFT JOIN topics tp ON tp.id = t.topic_id
 WHERE tp.title IS NOT NULL
 AND tp.title <> ''
+AND (:user_id IS NULL OR t.user_id = :user_id)
 GROUP BY tp.title
 ORDER BY count DESC
 """)
-        result = self.db.execute(query)
+        result = self.db.execute(query, {"user_id": user_id})
 
         return [
             dict(row._mapping)
             for row in result
         ]
-    
+
     def keyword_search(
-        self, query: str, limit: int = 10,
-    ):
+            self, user_id: str, query: str, limit: int = 10,
+        ):
+
         sql = text("""
 SELECT t.id, t.title, t.url, t.favicon,
     t.summary, tp.title AS topic, ts_rank(
         to_tsvector(
-            'english', 
+            'english',
             coalesce(t.title, '') || ' ' ||
             coalesce(t.summary, '') || ' ' ||
             coalesce(t.content, '')
@@ -75,6 +86,7 @@ SELECT t.id, t.title, t.url, t.favicon,
 FROM tabs t
 LEFT JOIN topics tp ON tp.id = t.topic_id
 WHERE t.is_searchable = TRUE
+AND t.user_id = :user_id
 AND
     to_tsvector(
      'english', coalesce(t.title, '') || ' ' ||
@@ -87,9 +99,9 @@ LIMIT :limit
 """)
         rows = self.db.execute(
             sql, {
-                "query": query, "limit": limit,
-            },
-        ).fetchall()
+                "query": query, "limit": limit, "user_id": user_id,
+                            },
+                        ).fetchall()
 
         return [{
             "tab_id": str(row.id),
@@ -100,12 +112,13 @@ LIMIT :limit
             "favicon": row.favicon,
             "score": float(row.score),
         } for row in rows]
-    
-    def domain_search(self, domain: str, limit: int = 20):
+
+    def domain_search(self, user_id: str, domain: str, limit: int = 20):
+
         rows = (
             self.db.query(Tab)
             .filter(Tab.is_searchable == True)
-            .filter(Tab.url.ilike(f"%{domain}%"))
+            .filter(Tab.url.ilike(f"%{domain}%")).filter(Tab.user_id == user_id)
             .limit(limit)
             .all()
         )

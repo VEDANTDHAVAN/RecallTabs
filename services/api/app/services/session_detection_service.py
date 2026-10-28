@@ -1,4 +1,4 @@
-from app.infrastructure.database.models.session import Session
+﻿from app.infrastructure.database.models.session import Session
 from app.repositories.session_repository import SessionRepository
 from app.repositories.tab_repository import TabRepository
 
@@ -10,14 +10,13 @@ class SessionDetectionService:
         self.session_repository = session_repository
         self.tab_repository = tab_repository
 
-    def assign_session(self, tab):
+    async def assign_session(self, tab):
         topic = tab.topic
-
         if not topic:
             return None
-        
+
         existing = (
-            self.session_repository.get_by_topic(topic)
+            self.session_repository.get_by_topic(topic, user_id=tab.user_id)
         )
 
         if existing:
@@ -25,9 +24,9 @@ class SessionDetectionService:
             self.tab_repository.update(tab)
 
             return existing
-        
+
         session = Session(
-            title=topic, topic=topic,
+            user_id=tab.user_id, title=topic, topic=topic,
             summary=tab.summary,
         )
 

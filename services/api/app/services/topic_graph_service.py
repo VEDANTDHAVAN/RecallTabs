@@ -1,4 +1,4 @@
-from app.infrastructure.database.models.topic import Topic
+﻿from app.infrastructure.database.models.topic import Topic
 
 from app.repositories.topic_repository import TopicRepository
 from app.services.embedding_service import EmbeddingService
@@ -12,7 +12,7 @@ class TopicGraphService:
         self.repository = repository
         self.embedder = EmbeddingService()
 
-    def get_or_create(
+    async def get_or_create(
         self, title: str, summary: str | None = None,
     ) -> Topic:
         title = title.strip()
@@ -22,9 +22,9 @@ class TopicGraphService:
 
         if existing is not None:
             return existing
-        
+
         # Semantic search
-        embedding = self.embedder.embed(title)
+        embedding = await self.embedder.embed(title)
 
         candidates = self.repository.search_by_embedding(
             embedding, limit=1,
@@ -36,7 +36,7 @@ class TopicGraphService:
 
                 if topic:
                     return topic
-                
+
         # Create new Topic
         topic = Topic(
             title=title, summary=summary,
@@ -47,9 +47,9 @@ class TopicGraphService:
 
         if created is None:
             raise RuntimeError("Failed to create topic.")
-        
+
         return created
-    
+
     def increment_importance(
         self, topic_id: str, amount: float = 1.0,
     ):

@@ -1,4 +1,4 @@
-from fastapi import APIRouter, Depends, Header
+﻿from fastapi import APIRouter, Depends, Header
 from sqlalchemy.orm import Session
 
 from app.domain.tab.schemas import CreateTabRequest, TabResponse
@@ -37,12 +37,12 @@ def debug_user(db: Session = Depends(get_db)):
 async def capture_tab(
     payload: TabCaptureRequest,
     db: Session = Depends(get_db),
-    #current_user=Depends(get_current_user),
+    current_user=Depends(get_current_user),
 ):
     service = TabCaptureService(db)
 
     tab = await service.capture(
-        payload=payload, user_id="125657ed-f496-4735-8391-696b96be49c8",
+        payload=payload, user_id=current_user.id,
     )
 
     return {

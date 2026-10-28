@@ -1,4 +1,4 @@
-from fastapi import APIRouter, Depends
+﻿from fastapi import APIRouter, Depends
 
 from sqlalchemy.orm import Session
 
@@ -11,8 +11,7 @@ from app.services.conversation_management_service import ConversationManagementS
 
 from app.schemas.conversation import ConversationUpdate
 
-def get_current_user_id():
-    return "125657ed-f496-4735-8391-696b96be49c8"
+from app.auth.dependencies import get_current_user
 
 router = APIRouter(
     prefix="/conversations",
@@ -22,68 +21,72 @@ router = APIRouter(
 @router.post("")
 def create_conversation(
     db: Session = Depends(get_db),
-    user_id: str = Depends(get_current_user_id)
+    current_user=Depends(get_current_user),
 ):
     service = ConversationManagementService(
         ConversationRepository(db)
     )
 
-    return service.create(user_id=user_id)
+    return service.create(user_id=current_user.id)
 
 @router.get("")
 def list_conversations(
     db: Session = Depends(get_db),
-    user_id: str = Depends(get_current_user_id),
+    current_user=Depends(get_current_user),
 ):
     service = ConversationManagementService(
         ConversationRepository(db)
     )
 
-    return service.list(user_id)
+    return service.list(current_user.id)
 
 @router.get("/{conversation_id}")
 def get_conversation(
     conversation_id: str,
-    db: Session = Depends(get_db)
+    db: Session = Depends(get_db),
+    current_user=Depends(get_current_user),
 ):
     service = ConversationManagementService(
         ConversationRepository(db)
     )
 
-    return service.get(conversation_id)
+    return service.get(conversation_id, user_id=current_user.id)
 
 @router.get("/{conversation_id}/messages")
 def get_messages(
-    conversation_id: str, 
-    db: Session = Depends(get_db)
+    conversation_id: str,
+    db: Session = Depends(get_db),
+    current_user=Depends(get_current_user),
 ):
     repository = MessageRepository(db)
 
-    return repository.get_messages(conversation_id)
+    return repository.get_messages(conversation_id, user_id=current_user.id)
 
 @router.patch("/{conversation_id}")
 def rename_conversation(
     conversation_id: str,
     payload: ConversationUpdate,
     db: Session = Depends(get_db),
+    current_user=Depends(get_current_user),
 ):
     service = ConversationManagementService(
         ConversationRepository(db)
     )
 
     return service.rename(
-        conversation_id, payload.title
+        conversation_id, payload.title, user_id=current_user.id,
     )
 
 @router.delete("/{conversation_id}")
 def delete_conversation(
     conversation_id: str,
     db: Session = Depends(get_db),
+    current_user=Depends(get_current_user),
 ):
     service = ConversationManagementService(
         ConversationRepository(db)
     )
 
     return {
-        "deleted": service.delete(conversation_id)
+        "deleted": service.delete(conversation_id, user_id=current_user.id)
     }

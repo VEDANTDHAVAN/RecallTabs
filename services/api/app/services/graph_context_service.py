@@ -1,4 +1,4 @@
-from app.services.entity_extraction_service import EntityExtractionService
+﻿from app.services.entity_extraction_service import EntityExtractionService
 from app.services.graph_traversal_service import GraphTraversalService
 
 from app.repositories.entity_repository import EntityRepository
@@ -15,9 +15,9 @@ class GraphContextService:
         )
 
     async def expand(self, question: str) -> list[str]:
-            extracted = await self.entity_extractor.extract(
-                question, question
-            )
+        extracted = await self.entity_extractor.extract(
+            question, question
+        )
 
         related = set()
 

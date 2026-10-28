@@ -1,4 +1,4 @@
-from sqlalchemy.orm import Session
+﻿from sqlalchemy.orm import Session
 from sqlalchemy import text
 from app.infrastructure.database.models.tab_chunk import TabChunk
 
@@ -12,27 +12,25 @@ class TabChunkRepository:
         self.db.refresh(tab_chunk)
 
         return tab_chunk
-    
-    def semantic_search(self, embedding: list[float], limit: int = 10,):
-        vector_str = "["+",".join(map(str, embedding)) + "]"
-        
+
+    def semantic_search(self, embedding: list[float], limit: int = 10, user_id: str | None = None):
+        vector_str = "[" + ",".join(map(str, embedding)) + "]"
+
         sql = text("""
-SELECT DISTINCT on (t.id)
+SELECT DISTINCT ON (t.id)
 
     t.id as tab_id,
     t.title, t.url,
     t.summary, tp.title AS topic,
-    t.favicon, t.captured_at, 
-    1 - (
-        tc.embedding <=> Entity.embedding.cosine_distance(embedding)
-    ) AS score
+    t.favicon, t.captured_at,
+    1 - (tc.embedding <=> CAST(:embedding AS vector)) AS score
 FROM tab_chunk tc
 JOIN tabs t
     ON tc.tab_id = t.id
 LEFT JOIN topics tp
     ON tp.id = t.topic_id
 WHERE t.summary IS NOT NULL
-      AND LENGTH(t.summary) > 30 
+      AND LENGTH(t.summary) > 30
 AND t.url NOT LIKE 'http://localhost%'
 AND t.url NOT LIKE 'https://localhost%'
 AND t.url NOT LIKE 'http://127.%'
@@ -40,15 +38,16 @@ AND t.url NOT LIKE 'chrome://%'
 AND t.url NOT LIKE 'chrome-extension://%'
 AND t.url NOT LIKE 'edge://%'
 AND t.url NOT LIKE '%supabase.com/dashboard%'
+AND (:user_id IS NULL OR t.user_id = :user_id)
 ORDER BY
-    t.id, tc.embedding <=> Entity.embedding.cosine_distance(embedding),
+    t.id, tc.embedding <=> CAST(:embedding AS vector),
     t.captured_at DESC
-LIMIT :limit     
+LIMIT :limit
 """)
 
         rows = self.db.execute(
             sql, {
-                "embedding": vector_str, "limit": limit,
+                "embedding": vector_str, "limit": limit, "user_id": user_id,
             }
         ).fetchall()
 
@@ -71,10 +70,8 @@ LIMIT :limit
             })
 
         return results
-    
-    def search_chunks(
-        self, embedding: list[float], limit: int = 5,
-    ):
+
+    def search_chunks(self, embedding: list[float], limit: int = 5, user_id: str | None = None):
         vector_str = "[" + ",".join(map(str, embedding)) + "]"
 
         query = text("""
@@ -86,19 +83,21 @@ SELECT
     t.summary,
     tp.title AS topic,
     t.favicon,
-    1 - (tc.embedding <=> Entity.embedding.cosine_distance(embedding)) AS score
+    1 - (tc.embedding <=> CAST(:embedding AS vector)) AS score
 FROM tab_chunk tc
 JOIN tabs t
 ON tc.tab_id = t.id
 LEFT JOIN topics tp
 ON tp.id = t.topic_id
-ORDER BY tc.embedding <=> Entity.embedding.cosine_distance(embedding)
+WHERE (:user_id IS NULL OR t.user_id = :user_id)
+ORDER BY tc.embedding <=> CAST(:embedding AS vector)
 LIMIT :limit
 """)
         rows = self.db.execute(
             query, {
                 "embedding": vector_str,
                 "limit": limit,
+                "user_id": user_id,
             },
         ).fetchall()
 
@@ -115,7 +114,7 @@ LIMIT :limit
             }
             for row in rows
         ]
-    
+
     def get_chunks_by_tab_id(self, tab_id: str,) -> list[TabChunk]:
         return (
             self.db.query(TabChunk)

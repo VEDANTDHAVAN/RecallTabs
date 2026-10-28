@@ -1,6 +1,8 @@
-from fastapi import Depends, Header, HTTPException
+﻿from fastapi import Depends, Header, HTTPException
 from sqlalchemy.orm import Session
 from typing import Annotated
+
+import jwt
 
 from app.auth.clerk import verify_token
 from app.services.user_service import UserProvisioningService
@@ -14,7 +16,7 @@ def get_current_user(
         raise HTTPException(
             status_code=401, detail="Missing bearer token",
         )
-    
+
     token = authorization.replace("Bearer ", "",)
 
     try:
@@ -26,13 +28,29 @@ def get_current_user(
             raise HTTPException(
                 status_code=401, detail="Email missing",
             )
-        
+
         service = UserProvisioningService(db)
 
         return service.get_or_create_user(
             clerk_user_id=clerk_user_id, email=email,
         )
-    
+
+    except jwt.ExpiredSignatureError:
+        raise HTTPException(
+            status_code=401, detail="Token expired",
+        )
+    except jwt.InvalidAudienceError:
+        raise HTTPException(
+            status_code=401, detail="Invalid audience",
+        )
+    except jwt.InvalidIssuerError:
+        raise HTTPException(
+            status_code=401, detail="Invalid issuer",
+        )
+    except jwt.InvalidTokenError:
+        raise HTTPException(
+            status_code=401, detail="Invalid token",
+        )
     except Exception:
         raise HTTPException(
             status_code=401, detail="Invalid token",

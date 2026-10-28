@@ -13,6 +13,10 @@ class Session(Base):
         default=lambda: str(uuid4())
     )
 
+    user_id: Mapped[str] = mapped_column(
+        ForeignKey("users.id"), index=True, nullable=False
+    )
+
     title: Mapped[str] = mapped_column(
         String(255), nullable=False
     )

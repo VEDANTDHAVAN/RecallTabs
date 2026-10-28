@@ -1,4 +1,4 @@
-from sqlalchemy import text
+﻿from sqlalchemy import text
 from sqlalchemy.orm import Session
 
 from app.infrastructure.database.models.topic import Topic
@@ -42,18 +42,17 @@ class TopicRepository:
         query = text("""
 SELECT
     *,
-    1-(embedding <=> Entity.embedding.cosine_distance(embedding))
-    AS score
+    1-(embedding <=> CAST(:embedding AS vector)) AS score
 FROM topics
 WHERE embedding IS NOT NULL
-ORDER BY embedding <=> Entity.embedding.cosine_distance(embedding)
+ORDER BY embedding <=> CAST(:embedding AS vector)
 LIMIT :limit
 """)
 
         rows = self.db.execute(
             query,
             {
-                "embedding": str(embedding),
+                "embedding": "[" + ",".join(map(str, embedding)) + "]",
                 "limit": limit,
             },
         )
@@ -62,7 +61,7 @@ LIMIT :limit
             dict(row._mapping)
             for row in rows
         ]
-    
+
     def increment_importance(
         self, topic_id: str, amount: float = 1.0,
     ) -> Topic | None:
@@ -71,5 +70,5 @@ LIMIT :limit
         if topic:
             topic.importance += amount
             return self.update(topic)
-        
+
         return None

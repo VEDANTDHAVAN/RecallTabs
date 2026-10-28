@@ -1,13 +1,14 @@
 from uuid import uuid4
 from datetime import datetime
 
-from sqlalchemy import String, Text, ForeignKey, Integer, DateTime, JSON, Boolean, Float
+from sqlalchemy import String, Text, ForeignKey, Integer, DateTime, JSON, Boolean, Float, UniqueConstraint
 from sqlalchemy.orm import Mapped, mapped_column, relationship
 
 from app.infrastructure.database.base import Base
 
 class Tab(Base):
     __tablename__ = "tabs"
+    __table_args__ = (UniqueConstraint("user_id", "url", name="uq_tab_user_url"),)
 
     id: Mapped[str] = mapped_column(
         String, primary_key=True, 

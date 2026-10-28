@@ -1,4 +1,4 @@
-from app.infrastructure.database.models.memory_cluster import MemoryCluster
+﻿from app.infrastructure.database.models.memory_cluster import MemoryCluster
 
 from app.services.embedding_service import EmbeddingService
 
@@ -11,19 +11,16 @@ class MemoryClusterService:
         self.session_repository = session_repository
         self.embedder = EmbeddingService()
 
-    def assign_cluster(
+    async def assign_cluster(
         self, session, threshold=0.70,
     ):
-        embedding = (
-            self.embedder.embed(session.topic)
-        )
+        embedding = await self.embedder.embed(session.topic)
 
         matches = (
             self.cluster_repository.semantic_search(
-                embedding, limit=1
+                embedding, limit=1, user_id=session.user_id,
             )
         )
-        print(matches)
 
         if matches:
             best = matches[0]
@@ -34,9 +31,9 @@ class MemoryClusterService:
                 self.session_repository.update(session)
 
                 return best
-            
+
         cluster = MemoryCluster(
-            title=session.topic, embedding=embedding,
+            user_id=session.user_id, title=session.topic, embedding=embedding,
             summary = session.summary,
         )
 

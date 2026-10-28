@@ -21,8 +21,8 @@ class TabChunk(Base):
 
     chunk_text: Mapped[str] = mapped_column(Text, nullable=False)
 
-    embedding: Mapped[list[float]] = mapped_column(Vector(384), nullable=False)
-# Why Vector(384)?
+    embedding: Mapped[list[float]] = mapped_column(Vector(1536), nullable=False)
+# Why Vector(1536)?
 
 # We'll use: sentence-transformers/all-MiniLM-L6-v2
 # because: Small, Fast, Excellent, quality, Embedding size = 384
